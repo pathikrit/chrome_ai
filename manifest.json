@@ -8,6 +8,7 @@
     "default_icon": "chrome_ai.png"
   },
   "permissions": [
+    "tabs",
     "activeTab",
     "scripting",
     "storage"
