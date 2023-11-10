@@ -1,22 +1,35 @@
 let config = undefined
 
+const tools = [
+  {
+    id: 'gcal',
+    title: 'To Google calendar',
+    runInTab: () => document.body.innerText,
+    fn: ([tab, text]) => textToCal(tab.url, text)
+  },
+  {
+    id: 'outlook',
+    title: 'To Outlook rules',
+    runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
+    fn: ([tab, emails]) => {
+      if (emails && emails.length > 0) {
+        const text = emails.join('; ')
+        log(text)
+        return navigator.clipboard.writeText(text).then(() => window.open('https://outlook.live.com/mail/0/options/mail/rules'))
+      } else {
+        log('No email selected')
+      }
+    }
+  }
+]
+
 $(document).ready(async () => {
   config = await fetch('config.json').then(res => res.json())
-  $('#gcal').on('click', () => executeInTab(() => document.body.innerText).then(([tab, text]) => textToCal(tab.url, text)))
-  $('#outlook').on('click', () => executeInTab(findSelectedEmails).then(([tab, emails]) => openOutlookRules(emails)))
-})
-
-findSelectedEmails = () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title)
-
-openOutlookRules = (emails) => {
-  if (emails && emails.length > 0) {
-    const text = emails.join('; ')
-    log(text)
-    return navigator.clipboard.writeText(text).then(() => window.open('https://outlook.live.com/mail/0/options/mail/rules'))
-  } else {
-    log('No email selected')
+  for (const tool of tools) {
+    $(document.body).prepend(`<br/><button id="${tool.id}">${tool.title}</button><br/>`)
+    $('#' + tool.id).on('click', () => executeInTab(tool.runInTab).then(tool.fn))
   }
-}
+})
 
 executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
     .then(([tab]) => {
