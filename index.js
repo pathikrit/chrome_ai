@@ -4,6 +4,17 @@ document.getElementById('gcal').addEventListener('click', async () => {
 });
 
 async function getCurrentTab() {
-  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
-  return tab;
+  const [activeTab] = await chrome.tabs.query({
+    active: true,
+    lastFocusedWindow: true,
+  });
+  console.log(activeTab)
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId: activeTab.id },
+    function: () => document.body.innerText,
+  });
+
+  console.log(result)
+  return activeTab
 }
+

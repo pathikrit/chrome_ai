@@ -1,7 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "Chrome AI Extension",
-  "description": "Automate Chrome using AI",
+  "name": "Chrome AI",
   "version": "0.0.1",
   "action": {
     "default_popup": "index.html",
@@ -13,7 +12,5 @@
     "scripting",
     "storage"
   ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'; script-src-elem 'self' 'unsafe-inline' https://cdn.jsdelivr.net;"
-  }
+  "host_permissions": ["<all_urls>"]
 }
