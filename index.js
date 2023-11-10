@@ -52,14 +52,15 @@ const tools = [
 
 $(document).ready(async () => {
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
-  if (tab) {
-    const buttons = tools.map(tool => {
-      return $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail, disabled: !tab.url.includes(tool.urlFilter ?? '')})
+  if (!tab) return
+  tools.forEach(tool => {
+    if (tab.url.includes(tool.urlFilter ?? '')) {
+      $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
         .text(tool.title)
         .click(() => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{result}]) => tool.fn(tab, result)))
-    })
-    $('#tools').append(buttons)
-  }
+        .appendTo($('#tools'))
+    }
+  })
 })
 
 const log = (text) => $('#logs').append(text + '\n')
