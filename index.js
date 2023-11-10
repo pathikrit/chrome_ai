@@ -5,13 +5,13 @@ const tools = [
     id: 'gcal',
     title: 'To Google calendar',
     runInTab: () => document.body.innerText,
-    fn: ([tab, text]) => textToCal(tab.url, text)
+    fn: (tab, text) => textToCal(tab.url, text)
   },
   {
     id: 'outlook',
     title: 'To Outlook rules',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
-    fn: ([tab, emails]) => {
+    fn: (tab, emails) => {
       if (emails && emails.length > 0) {
         const text = emails.join('; ')
         log(text)
@@ -25,19 +25,16 @@ const tools = [
 
 $(document).ready(async () => {
   config = await fetch('config.json').then(res => res.json())
-  for (const tool of tools) {
-    $(document.body).prepend(`<br/><button id="${tool.id}">${tool.title}</button><br/>`)
-    $('#' + tool.id).on('click', () => executeInTab(tool.runInTab).then(tool.fn))
+  const tab = await currentTab()
+  if (tab) {
+    for (const tool of tools) {
+      $(document.body).prepend(`<br/><button id="${tool.id}">${tool.title}</button><br/>`)
+      $('#' + tool.id).on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
+    }
   }
 })
 
-executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
-    .then(([tab]) => {
-      if (tab)
-        return chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}).then(([{ result }]) => [tab, result])
-      else
-        log('Focus on the tab')
-    })
+currentTab = () => chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
 
 textToCal = (url, text) => {
   log('Calling ChatGPT ...')
