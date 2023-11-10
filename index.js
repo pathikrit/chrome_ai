@@ -1,6 +1,10 @@
-config = fetch('config.json').then(res => res.json())
-$('#gcal').on('click', async () => executeInTab(() => document.body.innerText).then(([tab, text]) => textToCal(tab.url, text)))
-$('#outlook').on('click', () => executeInTab(findSelectedEmails).then(([tab, emails]) => openOutlookRules(emails)))
+let config = undefined
+
+$(document).ready(async () => {
+  config = await fetch('config.json').then(res => res.json())
+  $('#gcal').on('click', () => executeInTab(() => document.body.innerText).then(([tab, text]) => textToCal(tab.url, text)))
+  $('#outlook').on('click', () => executeInTab(findSelectedEmails).then(([tab, emails]) => openOutlookRules(emails)))
+})
 
 findSelectedEmails = () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title)
 
@@ -15,16 +19,20 @@ openOutlookRules = (emails) => {
 }
 
 executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
-    .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}).then(([{ result }]) => [tab, result]))
+    .then(([tab]) => {
+      if (tab)
+        return chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}).then(([{ result }]) => [tab, result])
+      else
+        log('Focus on the tab')
+    })
 
-textToCal = async (url, text) => {
+textToCal = (url, text) => {
   log('Calling ChatGPT ...')
-  const {OPENAI_API_KEY} = await config
   return $.post({
     url: 'https://api.openai.com/v1/chat/completions',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': 'Bearer ' + OPENAI_API_KEY
+      'Authorization': 'Bearer ' + config.OPENAI_API_KEY
     },
     data: JSON.stringify({
       model: 'gpt-3.5-turbo',
