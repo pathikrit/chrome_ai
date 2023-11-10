@@ -1,13 +1,13 @@
-$('#gcal').on('click', () => executeInTab(() => document.body.innerText).then(textToCal))
+config = fetch('config.json').then(res => res.json())
+$('#gcal').on('click', async () => executeInTab(() => document.body.innerText).then(textToCal))
 
 executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
     .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}))
     .then(([{ result }]) => result)
 
-OPENAI_API_KEY=
-
-textToCal = (text) => {
+textToCal = async (text) => {
   log('Calling ChatGPT ...')
+  const {OPENAI_API_KEY} = await config
   return $.post({
     url: 'https://api.openai.com/v1/chat/completions',
     headers: {
