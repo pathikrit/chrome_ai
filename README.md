@@ -1,6 +1,6 @@
 # My Chrome Extensions
 ---
-Random collection of chrome extensions I find useful for daily browsing
+Random collection of my chrome extensions I find useful for daily browsing
 
 ## Installation
 

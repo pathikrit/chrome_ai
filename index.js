@@ -1,5 +1,23 @@
 config = fetch('config.json').then(res => res.json())
 $('#gcal').on('click', async () => executeInTab(() => document.body.innerText).then(([tab, text]) => textToCal(tab.url, text)))
+$('#outlook').on('click', () => executeInTab(findSelectedEmails).then(([tab, emails]) => openOutlookRules(emails)))
+
+findSelectedEmails = () => {
+  return Array.from(document.querySelectorAll('div[aria-selected="true"]'))
+    .flatMap(el => Array.from(el.querySelectorAll('span[title*="@"]')))
+    .map(el => el.title)
+}
+
+openOutlookRules = (emails) => {
+  if (emails && emails.length > 0) {
+    const text = emails.join('; ')
+    log(text)
+    return navigator.clipboard.writeText(text).then(() => window.open('https://outlook.live.com/mail/0/options/mail/rules'))
+  } else {
+    log('No email selected')
+  }
+}
+
 
 executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
     .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}).then(([{ result }]) => [tab, result]))
