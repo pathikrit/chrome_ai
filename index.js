@@ -29,13 +29,8 @@ textToCal = async (url, text) => {
     data: JSON.stringify({
       model: 'gpt-3.5-turbo',
       messages: [
-        {
-          role: 'system',
-          content: `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`
-        },
-        {
-          role: 'user',
-          content: `I saved the text from a webpage (url=${url}). I will paste it below. Can you create a function call out of it?` + text
+        {role: 'system', content: `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`},
+        {role: 'user', content: `I saved the text from a webpage (url=${url}). I will paste it below. Can you create a function call out of it?` + text
         }
       ],
       tools: [
@@ -47,28 +42,11 @@ textToCal = async (url, text) => {
             parameters: {
               type: "object",
               properties: {
-                title: {
-                  type: "string",
-                  description: "Event title"
-                },
-                start: {
-                  type: "string",
-                  format: "date-time",
-                  description: "Event start time in ISO format"
-                },
-                end: {
-                  type: "string",
-                  format: "date-time",
-                  description: "Event end time in ISO format"
-                },
-                location: {
-                  type: "string",
-                  description: "Event location"
-                },
-                details: {
-                  type: "string",
-                  description: "Event description (short)"
-                }
+                title: {type: "string", description: "Event title"},
+                start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
+                end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
+                location: {type: "string", description: "Event location"},
+                details: {type: "string", description: "Event description (short)"}
               },
               required: ["title", "start", "end"],
             }
