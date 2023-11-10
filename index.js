@@ -1,6 +1,5 @@
-document.getElementById('gcal').addEventListener('click', async () => {
-  const text = await tabToText()
-  log(text)
+$('#gcal').on('click', () => {
+  tabToText().then(log)
 });
 
 tabToText = () => chrome.tabs.query({active: true, lastFocusedWindow: true})
@@ -9,5 +8,5 @@ tabToText = () => chrome.tabs.query({active: true, lastFocusedWindow: true})
 
 log = (text) => {
   console.log(text)
-  document.getElementById('logs').textContent += '\n' + text
+  $('#logs').append('\n' + text)
 }
