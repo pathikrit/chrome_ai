@@ -1,17 +1,17 @@
 <!doctype html>
-<html lang="en">
+<html lang="en" style="min-width:250px;">
 <head>
     <title>Chrome AI</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.min.css">
     <script src="vendors/jquery-3.7.1.min.js"></script>
-    <script defer src="chatgpt.js"></script>
-    <script defer src="index.js"></script>
-    <style>
-        body {
-            min-width:150px;
-        }
-    </style>
+    <script src="chatgpt.js"></script>
+    <script src="index.js"></script>
 </head>
 <body>
-<code id="logs"></code>
+    <main class="container">
+        <code id="logs"></code>
+    </main>
 </body>
 </html>

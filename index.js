@@ -52,10 +52,10 @@ $(document).ready(async () => {
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
   if (tab) {
     for (const tool of tools) {
-      if (tab.url.includes(tool.urlFilter ?? '')) {
-        $(document.body).prepend(`<button id="${tool.id}">${tool.title}</button><br/><br/>`)
-        $('#' + tool.id).on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
-      }
+      $('.container').append(`<button id="${tool.id}">${tool.title}</button>`)
+      $('#' + tool.id)
+        .on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
+        .prop('disabled', !tab.url.includes(tool.urlFilter ?? ''))
     }
   }
 })
