@@ -1,11 +1,10 @@
 config = fetch('config.json').then(res => res.json())
-$('#gcal').on('click', async () => executeInTab(() => document.body.innerText).then(textToCal))
+$('#gcal').on('click', async () => executeInTab(() => document.body.innerText).then(([tab, text]) => textToCal(tab.url, text)))
 
 executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
-    .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}))
-    .then(([{ result }]) => result)
+    .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}).then(([{ result }]) => [tab, result]))
 
-textToCal = async (text) => {
+textToCal = async (url, text) => {
   log('Calling ChatGPT ...')
   const {OPENAI_API_KEY} = await config
   return $.post({
@@ -23,7 +22,7 @@ textToCal = async (text) => {
         },
         {
           role: 'user',
-          content: 'I saved the text from a webpage. I will paste it below. Can you create a function call out of it?\n\n' + text
+          content: `I saved the text from a webpage (url=${url}). I will paste it below. Can you create a function call out of it?` + text
         }
       ],
       tools: [
@@ -71,7 +70,7 @@ textToCal = async (text) => {
       log(link)
       window.open(link, '_blank')
     } else {
-      log(res)
+      log(JSON.stringify(res))
     }
   })
 }
