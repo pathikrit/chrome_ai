@@ -19,3 +19,4 @@ const chatGptFunctionCall = (
     const { arguments } = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
     return arguments ? fn(JSON.parse(arguments)) : noFn(res)
   })
+  .catch(noFn)
