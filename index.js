@@ -1,10 +1,7 @@
-$('#gcal').on('click', () => {
-  //tabToText().then(log)
-  textToCal("Let's meet tomorrow at Bernie's at 2pm")
-});
+$('#gcal').on('click', () => executeInTab(() => document.body.innerText).then(textToCal))
 
-tabToText = () => chrome.tabs.query({active: true, lastFocusedWindow: true})
-    .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: () => document.body.innerText}))
+executeInTab = (f) => chrome.tabs.query({active: true, lastFocusedWindow: true})
+    .then(([tab]) => chrome.scripting.executeScript({target: {tabId: tab.id}, function: f}))
     .then(([{ result }]) => result)
 
 OPENAI_API_KEY=
@@ -68,7 +65,6 @@ textToCal = (text) => {
       ]
     })
   }).then(res => {
-    log('Received msg', res)
     const fn = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
     if (fn) {
       const link = gCalLink(JSON.parse(fn.arguments))
@@ -86,7 +82,4 @@ gCalLink = (arg) => {
   return encodeURI(link)
 }
 
-log = (text) => {
-  console.log(text)
-  $('#logs').append('\n' + text)
-}
+log = (text) => $('#logs').append('\n' + text)
