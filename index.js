@@ -1,20 +1,10 @@
 document.getElementById('gcal').addEventListener('click', async () => {
-  const tab = await getCurrentTab()
+  const tab = await tabToText()
+  document.getElementById('output').textContent = tab
   console.log(tab)
 });
 
-async function getCurrentTab() {
-  const [activeTab] = await chrome.tabs.query({
-    active: true,
-    lastFocusedWindow: true,
-  });
-  console.log(activeTab)
-  const [{ result }] = await chrome.scripting.executeScript({
-    target: { tabId: activeTab.id },
-    function: () => document.body.innerText,
-  });
-
-  console.log(result)
-  return activeTab
-}
-
+tabToText = () =>
+  chrome.tabs.query({active: true, lastFocusedWindow: true})
+    .then(([tab]) => chrome.scripting.executeScript({target: { tabId: tab.id }, function: () => document.body.innerText}))
+    .then(([{ result }]) => result)
