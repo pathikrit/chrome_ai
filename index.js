@@ -21,6 +21,10 @@ textToCal = (text) => {
       model: 'gpt-3.5-turbo',
       messages: [
         {
+          role: 'system',
+          content: `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`
+        },
+        {
           role: 'user',
           content: 'I saved the text from a webpage. I will paste it below. Can you create a function call out of it?\n\n' + text
         }
@@ -41,12 +45,12 @@ textToCal = (text) => {
                 start: {
                   type: "string",
                   format: "date-time",
-                  description: "Event start time"
+                  description: "Event start time in ISO format"
                 },
                 end: {
                   type: "string",
                   format: "date-time",
-                  description: "Event end time"
+                  description: "Event end time in ISO format"
                 },
                 location: {
                   type: "string",
@@ -69,13 +73,12 @@ textToCal = (text) => {
     if (fn) {
       const link = gCalLink(JSON.parse(fn.arguments))
       log(link)
+      window.open(link, '_blank')
     } else {
       log(res)
     }
   })
 }
-
-// https://calendar.google.com/calendar/render?action=TEMPLATE&text=Meeting%20at%20Bernie's&dates=20211103T140000Z/20211103T150000Z&location=Bernie's&details=
 
 gCalLink = (arg) => {
   const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
