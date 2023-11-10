@@ -25,7 +25,7 @@ const tools = [
         (arg) => {
           const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
           const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
-          window.open(encodeURI(link), '_blank')
+          window.open(encodeURI(link))
         },
         (res) => log(JSON.stringify(res))
       )
@@ -52,12 +52,12 @@ $(document).ready(async () => {
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
   if (tab) {
     for (const tool of tools) {
-      $('.container').append(`<button id="${tool.id}">${tool.title}</button>`)
-      $('#' + tool.id)
+      const button = $('<button>', {id: tool.id, disabled: !tab.url.includes(tool.urlFilter ?? '')})
+        .text(tool.title)
         .on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
-        .prop('disabled', !tab.url.includes(tool.urlFilter ?? ''))
+      $('.container').prepend(button)
     }
   }
 })
 
-const log = (text) => $('#logs').append('\n' + text)
+const log = (text) => $('#logs').append(text + '\n')
