@@ -2,6 +2,7 @@ const tools = [
   {
     id: 'gcal',
     title: 'To Google calendar',
+    detail: 'Create Google calendar invite from contents of this page',
     runInTab: () => document.body.innerText,
     fn: (tab, text) => {
       log('Calling ChatGPT ...')
@@ -34,6 +35,7 @@ const tools = [
   {
     id: 'outlook',
     title: 'To Outlook rules',
+    detail: 'Create Outlook filter with selected emails',
     urlFilter: 'outlook.live.com',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     fn: (tab, emails) => {
@@ -51,12 +53,12 @@ const tools = [
 $(document).ready(async () => {
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
   if (tab) {
-    for (const tool of tools) {
-      const button = $('<button>', {id: tool.id, disabled: !tab.url.includes(tool.urlFilter ?? '')})
+    const buttons = tools.map(tool => {
+      return $('<button>', {id: tool.id, disabled: !tab.url.includes(tool.urlFilter ?? '')})
         .text(tool.title)
         .on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
-      $('.container').prepend(button)
-    }
+    })
+    $('#tools').append(buttons)
   }
 })
 
