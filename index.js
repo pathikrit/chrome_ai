@@ -10,6 +10,7 @@ const tools = [
   {
     id: 'outlook',
     title: 'To Outlook rules',
+    urlFilter: 'outlook.live.com',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     fn: (tab, emails) => {
       if (emails && emails.length > 0) {
@@ -28,8 +29,10 @@ $(document).ready(async () => {
   const tab = await currentTab()
   if (tab) {
     for (const tool of tools) {
-      $(document.body).prepend(`<br/><button id="${tool.id}">${tool.title}</button><br/>`)
-      $('#' + tool.id).on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
+      if (tab.url.includes(tool.urlFilter ?? '')) {
+        $(document.body).prepend(`<button id="${tool.id}">${tool.title}</button><br/><br/>`)
+        $('#' + tool.id).on('click', () => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{ result }]) => tool.fn(tab, result)))
+      }
     }
   }
 })
