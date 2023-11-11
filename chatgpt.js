@@ -1,6 +1,6 @@
 OPENAI_API_KEY = 'XX-XXXXXXXXXXXXXXXXXXXXXXXXXX'
 
-const chatGptFunctionCall = (
+const askChatGpt = (
   prompt,
   fn,
   systemMsg = `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`,

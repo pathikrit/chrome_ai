@@ -4,40 +4,37 @@ const tools = [
     title: 'To Google calendar',
     detail: 'Create Google calendar invite from contents of this page',
     runInTab: () => document.body.innerText,
-    fn: (tab, text) => {
-      log('Calling ChatGPT ...')
-      return chatGptFunctionCall(
-        `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
-        {
-          schema: {
-            name: 'create_calendar_invite',
-            description: 'Creates a calendar invite with given title, start date and time, end date and time, location and description',
-            parameters: {
-              type: "object",
-              properties: {
-                title: {type: "string", description: "Event title"},
-                start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
-                end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
-                location: {type: "string", description: "Event location"},
-                details: {type: "string", description: "Event description (short)"}
-              },
-              required: ["title", "start", "end"],
-            }
-          },
-          f: (arg) => {
-            const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
-            const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
-            window.open(encodeURI(link))
+    fn: (tab, text) => askChatGpt(
+      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
+      {
+        f: (arg) => {
+          const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
+          const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
+          window.open(encodeURI(link))
+        },
+        schema: {
+          name: 'create_calendar_invite',
+          description: 'Creates a calendar invite with given title, start date and time, end date and time, location and description',
+          parameters: {
+            type: "object",
+            properties: {
+              title: {type: "string", description: "Event title"},
+              start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
+              end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
+              location: {type: "string", description: "Event location"},
+              details: {type: "string", description: "Event description (short)"}
+            },
+            required: ["title", "start", "end"],
           }
         }
-      )
-    }
+      }
+    )
   },
   {
     id: 'chat',
     title: 'Chat with Page',
     detail: 'Ask ChatGPT about this page',
-    runInTab:  () => document.body.innerText,
+    runInTab: () => document.body.innerText,
     fn: (tab, text) => {
       const q = prompt('Ask ChatGPT about this page', 'Summarize this page')
     }
