@@ -7,29 +7,39 @@ const tools = [
     fn: (tab, text) => {
       log('Calling ChatGPT ...')
       return chatGptFunctionCall(
-        `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?` + text,
+        `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
         {
-          name: 'create_calendar_invite',
-          description: 'Creates a calendar invite with given title, start date and time, end date and time, location and description',
-          parameters: {
-            type: "object",
-            properties: {
-              title: {type: "string", description: "Event title"},
-              start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
-              end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
-              location: {type: "string", description: "Event location"},
-              details: {type: "string", description: "Event description (short)"}
-            },
-            required: ["title", "start", "end"],
+          schema: {
+            name: 'create_calendar_invite',
+            description: 'Creates a calendar invite with given title, start date and time, end date and time, location and description',
+            parameters: {
+              type: "object",
+              properties: {
+                title: {type: "string", description: "Event title"},
+                start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
+                end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
+                location: {type: "string", description: "Event location"},
+                details: {type: "string", description: "Event description (short)"}
+              },
+              required: ["title", "start", "end"],
+            }
+          },
+          f: (arg) => {
+            const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
+            const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
+            window.open(encodeURI(link))
           }
-        },
-        (arg) => {
-          const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
-          const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
-          window.open(encodeURI(link))
-        },
-        (res) => log(JSON.stringify(res))
+        }
       )
+    }
+  },
+  {
+    id: 'chat',
+    title: 'Chat with Page',
+    detail: 'Ask ChatGPT about this page',
+    runInTab:  () => document.body.innerText,
+    fn: (tab, text) => {
+      const q = prompt('Ask ChatGPT about this page', 'Summarize this page')
     }
   },
   {
@@ -55,9 +65,12 @@ $(document).ready(async () => {
   if (!tab) return
   tools.forEach(tool => {
     if (tab.url.includes(tool.urlFilter ?? '')) {
+      const click = () => chrome.scripting
+        .executeScript({target: {tabId: tab.id}, function: tool.runInTab})
+        .then(([{result}]) => tool.fn(tab, result))
       $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
         .text(tool.title)
-        .click(() => chrome.scripting.executeScript({target: {tabId: tab.id}, function: tool.runInTab}).then(([{result}]) => tool.fn(tab, result)))
+        .click(click)
         .appendTo($('#tools'))
     }
   })
