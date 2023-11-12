@@ -148,11 +148,16 @@ const askChatGpt = (
     data: JSON.stringify(data)
   }).then(res => {
     log(`Parsing response from ${model} ...`)
-    const {arguments} = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
-    if (fn && arguments) {
-      return fn.f(JSON.parse(arguments))
-    } else {
-      return res?.choices?.[0]?.message?.content
+    try {
+      const {arguments} = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
+      if (fn && arguments) {
+        return fn.f(JSON.parse(arguments))
+      } else {
+        return res?.choices?.[0]?.message?.content
+      }
+    } catch (e) {
+      log(e)
+      throw e
     }
   })
 }
