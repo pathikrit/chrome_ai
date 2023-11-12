@@ -69,10 +69,11 @@ const tools = [
     urlFilter: 'mail/rules',
     runInTab: () => {
       const unique = (arr) => [...new Set(arr)]
+      //const clipboard = await navigator.clipboard.readText()
       return unique(Array.from(document.querySelectorAll('span'))
-        .map(el => el.innerText?.replace('\n', '').replace(/[^\x00-\x7F]/g, ""))
-        .filter(text => text.includes('@'))
-        .sort())
+        .map(el => el.innerText?.replace('\n', '').replace(/[^\x00-\x7F]/g, "").trim())
+        .filter(text => text.includes('@') && !text.includes(' ')))
+        .sort()
         .join('; ')
     },
     fn: (tab, emails) => log(emails)
@@ -80,6 +81,29 @@ const tools = [
 ]
 
 $(document).ready(async () => {
+  if (new URL(document.location).searchParams.get('mode') === 'options') {
+    $('#main').hide()
+    $('#options').show()
+  } else {
+    $('#main').show()
+    $('#options').hide()
+  }
+
+  $('input').change(() => $('#save').prop('disabled', false).text('Save'))
+
+  $('#save').click(() => {
+    settings = {}
+    $('input').toArray().forEach((el) => {settings[el.id] = el.value})
+    chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved ${settings}`))
+  })
+
+  chrome.storage.sync.get(null)
+    .then((settings) => {
+      for (const [key, value] of Object.entries(settings)) {
+        $('#' + key).val(value)
+      }
+    })
+
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
   if (!tab) return
   settings = await chrome.storage.sync.get(null)
@@ -122,8 +146,6 @@ const askChatGpt = (
     }
   })
 }
-
-const distinct = (items) => [...new Set(items)]
 
 const copyAndOpen = (text, url) => {
   log(text)

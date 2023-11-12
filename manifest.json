@@ -7,7 +7,7 @@
     "default_icon": "chrome_ai.png"
   },
   "options_ui": {
-    "page": "options.html",
+    "page": "index.html?mode=options",
     "open_in_tab": false
   },
   "permissions": ["tabs", "activeTab", "scripting", "storage"],

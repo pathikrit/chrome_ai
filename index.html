@@ -10,9 +10,16 @@
 </head>
 <body>
 <main class="container">
-    <h3>Chrome AI</h3>
-    <div id="tools"></div>
-    <label for="logs">Logs</label><textarea id="logs"></textarea>
+    <div id="main" style="display: none;">
+        <h3>Chrome AI</h3>
+        <div id="tools"></div>
+        <label for="logs">Logs</label><textarea id="logs"></textarea>
+    </div>
+    <div id="options" style="display: none;">
+        <label for="openai_api_key"><a href="https://platform.openai.com/api-keys">OPENAI API KEY</a></label>
+        <input id="openai_api_key" type="text"/>
+        <button id="save" disabled>Saved</button>
+    </div>
 </main>
 </body>
 </html>
