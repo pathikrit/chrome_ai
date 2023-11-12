@@ -26,7 +26,7 @@ const tools = [
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
       {
         f: (arg) => {
-          const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '')
+          const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '').replaceAll('Z', '')
           const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
           window.open(encodeURI(link))
         },
@@ -146,8 +146,7 @@ const askChatGpt = (
 
 const copyAndOpen = (text, url) => {
   log(text)
-  return navigator.clipboard.writeText(text)
-    .then(() => {if (url) window.open(url)})
+  return navigator.clipboard.writeText(text).then(() => {if (url) window.open(url)})
 }
 
 const log = (text) => $('#logs').text(text)
