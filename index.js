@@ -89,15 +89,23 @@ $(document).ready(async () => {
     chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved ${settings}`))
   })
 
-  chrome.storage.sync.get(null)
-    .then((settings) => {
-      for (const [key, value] of Object.entries(settings)) {
-        $('#' + key).val(value)
-      }
-    })
+  settings = await chrome.storage.sync.get(null)
+  Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
 
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
-  settings = await chrome.storage.sync.get(null)
+  if (tab) {
+    tools.forEach(tool => {
+      if (tab.url.includes(tool.urlFilter ?? '')) {
+        const click = () => chrome.scripting
+          .executeScript({target: {tabId: tab.id}, function: tool.runInTab})
+          .then(([{result}]) => tool.fn(tab, result))
+        $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
+          .text(tool.title)
+          .click(click)
+          .appendTo($('#tools'))
+      }
+    })
+  }
 
   if (new URL(document.location).searchParams.get('mode') === 'options' || !settings.openai_api_key) {
     $('#main').hide()
@@ -106,19 +114,6 @@ $(document).ready(async () => {
     $('#main').show()
     $('#options').hide()
   }
-
-  if (!tab) return
-  tools.forEach(tool => {
-    if (tab.url.includes(tool.urlFilter ?? '')) {
-      const click = () => chrome.scripting
-        .executeScript({target: {tabId: tab.id}, function: tool.runInTab})
-        .then(([{result}]) => tool.fn(tab, result))
-      $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
-        .text(tool.title)
-        .click(click)
-        .appendTo($('#tools'))
-    }
-  })
 })
 
 const askChatGpt = (
