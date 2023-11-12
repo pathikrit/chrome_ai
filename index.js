@@ -1,6 +1,9 @@
 let settings = {}
 
-const selectionOrText = () => window.getSelection().toString() ?? document.body.innerText
+const selectionOrText = () => {
+  const selected = window.getSelection().toString()
+  return selected?.length < 10 ? document.body.innerText : selected
+}
 
 const tools = [
   {
@@ -146,9 +149,6 @@ const askChatGpt = (
   })
 }
 
-const copyAndOpen = (text, url) => {
-  log(text)
-  return navigator.clipboard.writeText(text).then(() => {if (url) window.open(url)})
-}
+const copyAndOpen = (text, url) => navigator.clipboard.writeText(text).then(() => {if (url) window.open(url)})
 
 const log = (text) => $('#logs').text(text)
