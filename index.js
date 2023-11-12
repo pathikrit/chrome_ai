@@ -1,5 +1,21 @@
 const tools = [
   {
+    id: 'chat',
+    title: 'Chat with Page',
+    detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
+    runInTab: () => document.body.innerText,
+    fn: (tab, page) => {
+      const q = [
+        `I am copying the text from ${tab.url} below:`,
+        page,
+        `I have some questions about above text. Please analyze it and answer the following:`,
+        window.prompt('Ask ChatGPT about this page', 'Summarize this page')
+      ].join('\n\n')
+      chrome.tabs.update(tab.id, { 'active': true }, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
+        () => copyAndOpen(q, 'https://chat.openai.com/'))
+    }
+  },
+  {
     id: 'gcal',
     title: 'To Google calendar',
     detail: 'Create Google calendar invite from contents of this page',
@@ -31,15 +47,6 @@ const tools = [
     )
   },
   {
-    id: 'chat',
-    title: 'Chat with Page',
-    detail: 'Ask ChatGPT about this page',
-    runInTab: () => document.body.innerText,
-    fn: (tab, text) => {
-      const q = prompt('Ask ChatGPT about this page', 'Summarize this page')
-    }
-  },
-  {
     id: 'outlook',
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
@@ -47,9 +54,7 @@ const tools = [
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     fn: (tab, emails) => {
       if (emails && emails.length > 0) {
-        const text = emails.join('; ')
-        log(text)
-        return navigator.clipboard.writeText(text).then(() => window.open('https://outlook.live.com/mail/0/options/mail/rules'))
+        copyAndOpen(emails.join('; '), 'https://outlook.live.com/mail/0/options/mail/rules')
       } else {
         log('No email selected')
       }
@@ -73,4 +78,9 @@ $(document).ready(async () => {
   })
 })
 
-const log = (text) => $('#logs').append(text + '\n')
+const copyAndOpen = (text, url) => {
+  log(text)
+  return navigator.clipboard.writeText(text).then(() => window.open(url))
+}
+
+const log = (text) => $('#logs').text(text)
