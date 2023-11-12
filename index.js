@@ -81,14 +81,6 @@ const tools = [
 ]
 
 $(document).ready(async () => {
-  if (new URL(document.location).searchParams.get('mode') === 'options') {
-    $('#main').hide()
-    $('#options').show()
-  } else {
-    $('#main').show()
-    $('#options').hide()
-  }
-
   $('input').change(() => $('#save').prop('disabled', false).text('Save'))
 
   $('#save').click(() => {
@@ -105,8 +97,17 @@ $(document).ready(async () => {
     })
 
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
-  if (!tab) return
   settings = await chrome.storage.sync.get(null)
+
+  if (new URL(document.location).searchParams.get('mode') === 'options' || !settings.openai_api_key) {
+    $('#main').hide()
+    $('#options').show()
+  } else {
+    $('#main').show()
+    $('#options').hide()
+  }
+
+  if (!tab) return
   tools.forEach(tool => {
     if (tab.url.includes(tool.urlFilter ?? '')) {
       const click = () => chrome.scripting
