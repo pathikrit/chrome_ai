@@ -76,7 +76,7 @@ const tools = [
         .sort()
         .join('; ')
     },
-    fn: (tab, emails) => log(emails)
+    fn: (tab, emails) => copyAndOpen(emails)
   }
 ]
 
@@ -122,6 +122,7 @@ const askChatGpt = (
   systemMsg = `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`,
   model = 'gpt-3.5-turbo'
 ) => {
+  log(`Asking ${model} ...`)
   const data = {
     model: model,
     messages: [{role: 'system', content: systemMsg}, {role: 'user', content: prompt}]
@@ -145,7 +146,8 @@ const askChatGpt = (
 
 const copyAndOpen = (text, url) => {
   log(text)
-  return navigator.clipboard.writeText(text).then(() => window.open(url))
+  return navigator.clipboard.writeText(text)
+    .then(() => {if (url) window.open(url)})
 }
 
 const log = (text) => $('#logs').text(text)
