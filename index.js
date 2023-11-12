@@ -2,7 +2,7 @@ let settings = {}
 
 const selectionOrText = () => {
   const selected = window.getSelection().toString()
-  return selected?.length < 10 ? document.body.innerText : selected
+  return selected?.length > 10 ? selected : document.body.innerText
 }
 
 const tools = [
@@ -133,6 +133,7 @@ const askChatGpt = (
     messages: [{role: 'system', content: systemMsg}, {role: 'user', content: prompt}]
   }
   if (fn) {
+    //fn.f = (args) => { try { return fn.f(args)} catch (e) { log(e) }}
     data.tools = [{type: 'function', function: fn.schema}]
   }
   return $.post({
