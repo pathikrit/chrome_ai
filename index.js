@@ -1,3 +1,5 @@
+let settings = {}
+
 const tools = [
   {
     id: 'chat',
@@ -11,7 +13,7 @@ const tools = [
         `I have some questions about above text. Please analyze it and answer the following:`,
         window.prompt('Ask ChatGPT about this page', 'Summarize this page')
       ].join('\n\n')
-      chrome.tabs.update(tab.id, { 'active': true }, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
+      chrome.tabs.update(tab.id, {'active': true}, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
         () => copyAndOpen(q, 'https://chat.openai.com/'))
     }
   },
@@ -65,6 +67,7 @@ const tools = [
 $(document).ready(async () => {
   const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
   if (!tab) return
+  settings = await chrome.storage.sync.get(null)
   tools.forEach(tool => {
     if (tab.url.includes(tool.urlFilter ?? '')) {
       const click = () => chrome.scripting
@@ -77,6 +80,33 @@ $(document).ready(async () => {
     }
   })
 })
+
+const askChatGpt = (
+  prompt,
+  fn,
+  systemMsg = `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`,
+  model = 'gpt-3.5-turbo'
+) => {
+  const data = {
+    model: model,
+    messages: [{role: 'system', content: systemMsg}, {role: 'user', content: prompt}]
+  }
+  if (fn) {
+    data.tools = [{type: 'function', function: fn.schema}]
+  }
+  return $.post({
+    url: 'https://api.openai.com/v1/chat/completions',
+    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + settings.openai_api_key},
+    data: JSON.stringify(data)
+  }).then(res => {
+    const {arguments} = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
+    if (fn && arguments) {
+      return fn.f(JSON.parse(arguments))
+    } else {
+      return res?.choices?.[0]?.message?.content
+    }
+  })
+}
 
 const copyAndOpen = (text, url) => {
   log(text)

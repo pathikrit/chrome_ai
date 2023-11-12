@@ -9,6 +9,6 @@ Random collection of my chrome extensions I find useful for daily browsing
 git clone git@github.com:pathikrit/chrome_ai.git
 ```
 
-2. Set your [`OPENAI_API_KEY`](https://platform.openai.com/api-keys) in [chatgpt.js](chatgpt.js)
-
-3. Load this as a [Chrome extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
+2. Load this as a [Chrome extension](https://developer.chrome.com/docs/extensions/mv3/getstarted/development-basics/#load-unpacked)
+   
+3. Set your [`OPENAI_API_KEY`](https://platform.openai.com/api-keys) in the [options](https://developer.chrome.com/docs/extensions/mv3/options/)
