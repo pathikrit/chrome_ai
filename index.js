@@ -20,6 +20,7 @@ const tools = [
         `I have some questions about above text. Please analyze it and answer the following:`,
         query
       ].join('\n\n')
+      log(`Opening ChatGPT with ${page.length} chars page ...`)
       chrome.tabs.update(tab.id, {'active': true}, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
         () => copyAndOpen(prompt, 'https://chat.openai.com/'))
     }
@@ -75,15 +76,18 @@ const tools = [
     detail: 'Dedupe Outlook FROM rules',
     urlFilter: 'mail/rules',
     runInTab: () => {
-      const unique = (arr) => [...new Set(arr)]
       //const clipboard = await navigator.clipboard.readText()
-      return unique(Array.from(document.querySelectorAll('span'))
-        .map(el => el.innerText?.replace('\n', '').replace(/[^\x00-\x7F]/g, "").trim())
-        .filter(text => text.includes('@') && !text.includes(' ')))
-        .sort()
-        .join('; ')
+      return Array.from(document.querySelectorAll('span'))
+        .map(el => el.innerText?.trim())
+        .filter(text => text.includes('@') && !text.includes('\n'))
     },
-    fn: (tab, emails) => copyAndOpen(emails)
+    fn: (tab, emails) => {
+      const before = emails.length
+      emails = [...new Set(emails)]
+      const after = emails.length
+      log(before === after ? `No duplicates found in ${before} emails` : `Deduped ${before} email addresses to ${after} emails ... `)
+      copyAndOpen(emails.sort().join('; '))
+    }
   }
 ]
 
