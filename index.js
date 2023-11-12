@@ -1,11 +1,13 @@
 let settings = {}
 
+const selectionOrText = () => window.getSelection().toString() ?? document.body.innerText
+
 const tools = [
   {
     id: 'chat',
     title: 'Chat with Page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    runInTab: () => document.body.innerText,
+    runInTab: selectionOrText,
     fn: (tab, page) => {
       const q = [
         `I am copying the text from ${tab.url} below:`,
@@ -21,7 +23,7 @@ const tools = [
     id: 'gcal',
     title: 'To Google calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    runInTab: () => document.body.innerText,
+    runInTab: selectionOrText,
     fn: (tab, text) => askChatGpt(
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
       {
