@@ -61,6 +61,21 @@ const tools = [
         log('No email selected')
       }
     }
+  },
+  {
+    id: 'rule_dedupe',
+    title: 'Dedupe Outlook rules',
+    detail: 'Dedupe Outlook FROM rules',
+    urlFilter: 'mail/rules',
+    runInTab: () => {
+      const unique = (arr) => [...new Set(arr)]
+      return unique(Array.from(document.querySelectorAll('span'))
+        .map(el => el.innerText?.replace('\n', '').replace(/[^\x00-\x7F]/g, ""))
+        .filter(text => text.includes('@'))
+        .sort())
+        .join('; ')
+    },
+    fn: (tab, emails) => log(emails)
   }
 ]
 
@@ -107,6 +122,8 @@ const askChatGpt = (
     }
   })
 }
+
+const distinct = (items) => [...new Set(items)]
 
 const copyAndOpen = (text, url) => {
   log(text)
