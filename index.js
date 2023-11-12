@@ -12,14 +12,16 @@ const tools = [
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
     runInTab: selectionOrText,
     fn: (tab, page) => {
-      const q = [
+      const query = window.prompt('Ask ChatGPT about this page', 'Summarize this page')
+      if (!query) return
+      const prompt = [
         `I am copying the text from ${tab.url} below:`,
         page,
         `I have some questions about above text. Please analyze it and answer the following:`,
-        window.prompt('Ask ChatGPT about this page', 'Summarize this page')
+        query
       ].join('\n\n')
       chrome.tabs.update(tab.id, {'active': true}, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
-        () => copyAndOpen(q, 'https://chat.openai.com/'))
+        () => copyAndOpen(prompt, 'https://chat.openai.com/'))
     }
   },
   {
@@ -141,6 +143,7 @@ const askChatGpt = (
     headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + settings.openai_api_key},
     data: JSON.stringify(data)
   }).then(res => {
+    log(`Parsing response from ${model} ...`)
     const {arguments} = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
     if (fn && arguments) {
       return fn.f(JSON.parse(arguments))
