@@ -16,7 +16,7 @@ const tools = [
       if (!query) return
       const prompt = [
         `I am copying the text from ${tab.url} below:`,
-        page,
+        page.slice(0, 10000),
         `I have some questions about above text. Please analyze it and answer the following:`,
         query
       ].join('\n\n')
@@ -31,7 +31,8 @@ const tools = [
     detail: 'Create Google calendar invite from contents of this page',
     runInTab: selectionOrText,
     fn: (tab, text) => askChatGpt(
-      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text,
+      // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
+      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
       {
         f: (arg) => {
           const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '').replaceAll('Z', '')
