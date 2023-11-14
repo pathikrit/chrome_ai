@@ -1,4 +1,6 @@
-let settings = {}
+let settings = {
+  ril: 10 //TODO: add to settings; mark read too; actually use it
+}
 
 const selectionOrText = () => {
   const selected = window.getSelection().toString()
@@ -21,8 +23,7 @@ const tools = [
         query
       ].join('\n\n')
       log(`Opening ChatGPT with ${page.length} chars page ...`)
-      chrome.tabs.update(tab.id, {'active': true}, // rm when this bug is fixed https://stackoverflow.com/questions/69425289/
-        () => copyAndOpen(prompt, 'https://chat.openai.com/'))
+      copy(prompt).then(() => newTab('https://chat.openai.com/'))
     }
   },
   {
@@ -65,7 +66,7 @@ const tools = [
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     fn: (tab, emails) => {
       if (emails && emails.length > 0) {
-        copyAndOpen(emails.join('; '), 'https://outlook.live.com/mail/0/options/mail/rules')
+        copy(emails.join('; ')).then(() => newTab('https://outlook.live.com/mail/0/options/mail/rules'))
       } else {
         log('No email selected')
       }
@@ -87,9 +88,20 @@ const tools = [
       emails = [...new Set(emails)]
       const after = emails.length
       log(before === after ? `No duplicates found in ${before} emails` : `Deduped ${before} email addresses to ${after} emails ... `)
-      copyAndOpen(emails.sort().join('; '))
+      copy(emails.sort().join('; '))
     }
-  }
+  },
+  {
+    id: 'ril',
+    title: `Bulk read ${settings.ril} links`,
+    detail: `Open ${settings.ril} links in new tabs and mark them as read`,
+    urlFilter: 'getpocket.com/saves',
+    runInTab: () => Array.from(document.querySelectorAll('a[data-cy="content-block"]')).map(el => el.href),
+    fn: (tab, links) => {
+      log(links)
+      links.forEach(newTab)
+    }
+  },
 ]
 
 $(document).ready(async () => {
@@ -163,6 +175,7 @@ const askChatGpt = (
   })
 }
 
-const copyAndOpen = (text, url) => navigator.clipboard.writeText(text).then(() => {if (url) window.open(url)})
+const copy = (text) => navigator.clipboard.writeText(text)
+const newTab = (url) => chrome.tabs.create({url})
 
 const log = (text) => $('#logs').text(text)
