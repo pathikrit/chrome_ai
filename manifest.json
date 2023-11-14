@@ -14,9 +14,9 @@
     {
       "matches": [
         "https://mint.intuit.com/transactions",
-        "https://*.amazon.com/gp/your-account/order-history"
+        "https://*.amazon.com/gp/your-account/order-history*"
       ],
-      "js": ["content-script.js"],
+      "js": ["content-script.js"]
     }
   ],
   "permissions": ["tabs", "activeTab", "scripting", "storage"],
