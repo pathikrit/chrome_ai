@@ -3,7 +3,7 @@
   "name": "Chrome AI",
   "version": "0.0.1",
   "action": {
-    "default_popup": "index.html",
+    "default_popup": "index.html?mode=popup",
     "default_icon": "chrome_ai.png"
   },
   "options_ui": {
