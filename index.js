@@ -1,16 +1,10 @@
 let settings = {}
 
-const selectionOrText = () => {
-  const selected = window.getSelection().toString()
-  return selected?.length > 10 ? selected : document.body.innerText
-}
-
 const tools = [
   {
     id: 'chat',
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    runInTab: selectionOrText,
     fn: (tab, page) => {
       const query = window.prompt('Ask ChatGPT about this page', 'Summarize this page')
       if (!query) return
@@ -28,7 +22,6 @@ const tools = [
     id: 'gcal',
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    runInTab: selectionOrText,
     fn: (tab, text) => askChatGpt(
       // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
@@ -131,19 +124,20 @@ const extensionModes = {
     })
 
     Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
-
-    $('#main').hide()
-    $('#options').show()
   },
   'popup': async () => {
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (tab) {
+      const selectionOrText = () => {
+        const selected = window.getSelection().toString()
+        return selected?.length > 10 ? selected : document.body.innerText
+      }
       tools.forEach(tool => {
         if (tab.url.includes(tool.urlFilter ?? '')) {
           const click = () => chrome.scripting
-            .executeScript({target: {tabId: tab.id}, function: tool.runInTab})
+            .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
             .then(([{result}]) => tool.fn(tab, result))
-          $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
+          $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
             .text(tool.title)
             .toggleClass('outline', tool.urlFilter == null)
             .click(click)
@@ -151,9 +145,6 @@ const extensionModes = {
         }
       })
     }
-
-    $('#main').show()
-    $('#options').hide()
   }
 }
 
@@ -161,8 +152,8 @@ $(document).ready(async () => {
   settings = await chrome.storage.sync.get(null)
   if (!settings.openai_api_key) return extensionModes.options()
   const mode = new URL(document.location).searchParams.get('mode')
-  console.log(mode)
   extensionModes[mode]()
+  $('#' + mode).show()
 })
 
 const askChatGpt = (
