@@ -1,6 +1,4 @@
-let settings = {
-  ril: 10 //TODO: add to settings; mark read too; actually use it
-}
+let settings = {}
 
 const selectionOrText = () => {
   const selected = window.getSelection().toString()
@@ -38,7 +36,7 @@ const tools = [
         f: (arg) => {
           const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '').replaceAll('Z', '')
           const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
-          window.open(encodeURI(link))
+          openUrl(encodeURI(link))
         },
         schema: {
           name: 'create_calendar_invite',
@@ -93,13 +91,13 @@ const tools = [
   },
   {
     id: 'ril',
-    title: `Bulk read ${settings.ril} links`,
-    detail: `Open ${settings.ril} links in new tabs and mark them as read`,
+    title: `Bulk read links`,
+    detail: `Open links in new tabs and mark them as read`,
     urlFilter: 'getpocket.com/saves',
-    runInTab: () => Array.from(document.querySelectorAll('a[data-cy="content-block"]')).map(el => el.href),
+    runInTab: () => Array.from(document.querySelectorAll('a[data-cy="content-block"]')).slice(0, 10).map(el => el.href),
     fn: (tab, links) => {
-      log(links)
-      links.forEach(openUrl)
+      log(links.join('\n'))
+      links.forEach(link => openUrl(link))
     }
   },
 ]
@@ -110,7 +108,7 @@ $(document).ready(async () => {
   $('#save').click(() => {
     settings = {}
     $('input').toArray().forEach((el) => {settings[el.id] = el.value})
-    chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved ${settings}`))
+    chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved`))
   })
 
   settings = await chrome.storage.sync.get(null)
@@ -178,6 +176,6 @@ const askChatGpt = (
 
 const copy = (text) => navigator.clipboard.writeText(text)
 
-const openUrl = (url, tab) => { return tab ? chrome.tabs.update(tab.id, {url}) : chrome.tabs.create({url}) }
+const openUrl = (url, tab) => { tab ? chrome.tabs.update(tab.id, {url}) : chrome.tabs.create({url}) }
 
 const log = (text) => $('#logs').text(text)
