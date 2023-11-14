@@ -97,20 +97,7 @@ const tools = [
       log(links.join('\n'))
       links.forEach(link => open(link))
     }
-  },
-  {
-    id: 'amzn',
-    title: `Find Amazon Txn`,
-    detail: `Find Amazon Txn`,
-    urlFilter: 'amazon.com/gp/your-account/order-history',
-    runInTab: () => {
-      document.body.focus()
-      return window.find('$156')
-    },
-    fn: (tab, res) => {
-      log(res)
-    }
-  },
+  }
 ]
 
 const extensionModes = {

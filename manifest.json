@@ -10,6 +10,15 @@
     "page": "index.html?mode=options",
     "open_in_tab": false
   },
+  "content_scripts": [
+    {
+      "matches": [
+        "https://mint.intuit.com/transactions",
+        "https://*.amazon.com/gp/your-account/order-history"
+      ],
+      "js": ["content-script.js"],
+    }
+  ],
   "permissions": ["tabs", "activeTab", "scripting", "storage"],
   "host_permissions": ["<all_urls>"]
 }
