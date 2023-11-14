@@ -120,10 +120,8 @@ const tools = [
   },
 ]
 
-$(document).ready(async () => {
-  settings = await chrome.storage.sync.get(null)
-
-  if (new URL(document.location).searchParams.get('mode') === 'options' || !settings.openai_api_key) {
+const extensionModes = {
+  'options': () => {
     $('input').change(() => $('#save').prop('disabled', false).text('Save'))
 
     $('#save').click(() => {
@@ -136,7 +134,8 @@ $(document).ready(async () => {
 
     $('#main').hide()
     $('#options').show()
-  } else {
+  },
+  'popup': async () => {
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (tab) {
       tools.forEach(tool => {
@@ -156,6 +155,14 @@ $(document).ready(async () => {
     $('#main').show()
     $('#options').hide()
   }
+}
+
+$(document).ready(async () => {
+  settings = await chrome.storage.sync.get(null)
+  if (!settings.openai_api_key) return extensionModes.options()
+  const mode = new URL(document.location).searchParams.get('mode')
+  console.log(mode)
+  extensionModes[mode]()
 })
 
 const askChatGpt = (
