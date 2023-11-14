@@ -94,7 +94,12 @@ const tools = [
     title: `Bulk read links`,
     detail: `Open links in new tabs and mark them as read`,
     urlFilter: 'getpocket.com/saves',
-    runInTab: () => Array.from(document.querySelectorAll('a[data-cy="content-block"]')).slice(0, 10).map(el => el.href),
+    runInTab: () => {
+      const n = 10
+      const links = Array.from(document.querySelectorAll('a[data-cy="content-block"]')).slice(0, n).map(el => el.href)
+      Array.from(document.querySelectorAll('button[data-cy="Archive"]')).slice(0, n).forEach(el => el.click())
+      return links
+    },
     fn: (tab, links) => {
       log(links.join('\n'))
       links.forEach(link => openUrl(link))
