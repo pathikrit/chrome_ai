@@ -125,6 +125,7 @@ $(document).ready(async () => {
           .then(([{result}]) => tool.fn(tab, result))
         $('<button>', {id: tool.id, title: tool.detail, 'data-tooltip': tool.detail})
           .text(tool.title)
+          .toggleClass('outline', tool.urlFilter == null)
           .click(click)
           .appendTo($('#tools'))
       }
