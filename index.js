@@ -23,7 +23,7 @@ const tools = [
         query
       ].join('\n\n')
       log(`Opening ChatGPT with ${page.length} chars page ...`)
-      copy(prompt).then(() => newTab('https://chat.openai.com/'))
+      copy(prompt).then(() => openUrl('https://chat.openai.com/'))
     }
   },
   {
@@ -66,7 +66,7 @@ const tools = [
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     fn: (tab, emails) => {
       if (emails && emails.length > 0) {
-        copy(emails.join('; ')).then(() => newTab('https://outlook.live.com/mail/0/options/mail/rules'))
+        copy(emails.join('; ')).then(() => openUrl('https://outlook.live.com/mail/0/options/mail/rules'))
       } else {
         log('No email selected')
       }
@@ -99,7 +99,7 @@ const tools = [
     runInTab: () => Array.from(document.querySelectorAll('a[data-cy="content-block"]')).map(el => el.href),
     fn: (tab, links) => {
       log(links)
-      links.forEach(newTab)
+      links.forEach(openUrl)
     }
   },
 ]
@@ -177,6 +177,7 @@ const askChatGpt = (
 }
 
 const copy = (text) => navigator.clipboard.writeText(text)
-const newTab = (url) => chrome.tabs.create({url})
+
+const openUrl = (url, tab) => { return tab ? chrome.tabs.update(tab.id, {url}) : chrome.tabs.create({url}) }
 
 const log = (text) => $('#logs').text(text)
