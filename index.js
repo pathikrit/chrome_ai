@@ -108,7 +108,7 @@ const tools = [
     urlFilter: 'getpocket.com/saves',
     runInTab: () => {
       const n = 10
-      const links = Array.from(document.querySelectorAll('a[data-cy="content-block"]')).slice(0, n).map(el => el.href)
+      const links = Array.from(document.querySelectorAll('a[class="publisher"]')).slice(0, n).map(el => el.href)
       Array.from(document.querySelectorAll('button[data-cy="Archive"]')).slice(0, n).forEach(el => el.click())
       return links
     },

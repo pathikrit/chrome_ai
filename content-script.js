@@ -18,9 +18,14 @@ const fns = {
   }
 }
 
-const url = window.location.href
-if (url.includes('mint.intuit.com')) {
-  setTimeout(fns.mint, 5000)
-} else if (url.includes(amazon_amount_search_key)) {
-  fns.amazon_search()
+const main = () => {
+  const url = window.location.href
+  if (url.includes('mint.intuit.com')) {
+    setTimeout(fns.mint, 5000)
+  } else if (url.includes(amazon_amount_search_key)) {
+    fns.amazon_search()
+  }
 }
+
+main()
+window.addEventListener('hashchange', main)
