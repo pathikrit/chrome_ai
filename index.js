@@ -1,5 +1,9 @@
 let settings = {}
 
+const constants = {
+  amazon_amount_search_key: '__chrome_ai_amount'
+}
+
 const tools = [
   {
     id: 'chat',
@@ -116,6 +120,30 @@ const tools = [
       log(links.join('\n'))
       links.forEach(link => open(link))
     }
+  },
+  {
+    pageScript: true,
+    urlFilter: 'mint.intuit.com',
+    delay: 5000,
+    fn: () => {
+      Array.from(document.querySelectorAll('td[role="cell"]'))
+        .filter(el => el.innerText === 'Amazon')
+        .map(el => el.nextElementSibling.nextElementSibling)
+        .forEach(el => {
+          const insertUrl = (name, url) => el.insertAdjacentHTML('afterend', `<a href="${url}" target="_blank">Find in ${name}</a><br/>`)
+          const amount = el.innerText.replace('-', '').replace('$', '')
+          insertUrl('Amazon', `https://www.amazon.com/gp/your-account/order-history?${constants.amazon_amount_search_key}=${amount}`)
+          insertUrl('GMail', `https://mail.google.com/mail/u/0/#search/amazon+${amount}`)
+        })
+    }
+  },
+  {
+    pageScript: true,
+    urlFilter: constants.amazon_amount_search_key,
+    fn: () => {
+      const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
+      window.find(amount)
+    }
   }
 ]
 
@@ -151,16 +179,23 @@ const extensionModes = {
         }
       })
     }
-  }
+  },
+  'pagescript': () => tools
+    .filter(script => script.pageScript && window.location.href.includes(script.urlFilter))
+    .forEach(script => setTimeout(script.fn, script.delay ?? 1))
 }
 
-$(document).ready(async () => {
-  settings = await chrome.storage.sync.get(null)
-  if (!settings.openai_api_key) return extensionModes.options()
-  const mode = new URL(document.location).searchParams.get('mode')
-  extensionModes[mode]()
-  $('#' + mode).show()
-})
+if (window.location.href.startsWith('chrome-extension://')) {
+  $(document).ready(async () => {
+    settings = await chrome.storage.sync.get(null)
+    if (!settings.openai_api_key) return extensionModes.options()
+    const mode = new URL(document.location).searchParams.get('mode')
+    extensionModes[mode]()
+    $('#' + mode).show()
+  })
+} else {
+  extensionModes['pagescript']()
+}
 
 const askChatGpt = (
   prompt,

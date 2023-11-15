@@ -16,7 +16,7 @@
         "https://mint.intuit.com/transaction*",
         "https://*.amazon.com/gp/your-account/order-history*"
       ],
-      "js": ["content-script.js"]
+      "js": ["index.js"]
     }
   ],
   "permissions": ["tabs", "activeTab", "scripting", "storage"],
