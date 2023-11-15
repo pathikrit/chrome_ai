@@ -123,7 +123,6 @@ const tools = [
     }
   },
   {
-    pageScript: true,
     urlFilter: 'mint.intuit.com',
     delay: 5000,
     fn: () => {
@@ -139,7 +138,6 @@ const tools = [
     }
   },
   {
-    pageScript: true,
     urlFilter: constants.amazon_amount_search_key,
     fn: () => {
       const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
@@ -147,44 +145,6 @@ const tools = [
     }
   }
 ]
-
-const extensionModes = {
-  options: () => {
-    $('input').change(() => $('#save').prop('disabled', false).text('Save'))
-
-    $('#save').click(() => {
-      settings = {}
-      $('input').toArray().forEach((el) => {settings[el.id] = el.value})
-      chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved`))
-    })
-
-    Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
-  },
-  popup: async () => {
-    if (!settings.openai_api_key) return extensionModes.options()
-    const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
-    if (!tab) return
-    const selectionOrText = () => {
-      const selected = window.getSelection().toString()
-      return selected?.length > 10 ? selected : document.body.innerText
-    }
-    tools
-      .filter(tool => !tool.pageScript && tab.url.includes(tool.urlFilter ?? ''))
-      .forEach(tool => {
-        const click = () => chrome.scripting
-          .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
-          .then(([{result}]) => tool.fn(tab, result))
-        $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
-          .text(tool.title)
-          .toggleClass('outline', tool.urlFilter == null)
-          .click(click)
-          .appendTo($('#tools'))
-      })
-  },
-  pageScript: () => tools
-    .filter(tool => tool.pageScript && window.location.href.includes(tool.urlFilter))
-    .forEach(tool => setTimeout(tool.fn, tool.delay ?? 1))
-}
 
 const askChatGpt = (
   prompt,
@@ -219,6 +179,45 @@ const askChatGpt = (
       throw e
     }
   })
+}
+
+/************************ Extension Framework Below *************************/
+const extensionModes = {
+  options: () => {
+    $('input').change(() => $('#save').prop('disabled', false).text('Save'))
+
+    $('#save').click(() => {
+      settings = {}
+      $('input').toArray().forEach((el) => {settings[el.id] = el.value})
+      chrome.storage.sync.set(settings).then(() => $('#save').prop('disabled', true).text(`Saved`))
+    })
+
+    Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
+  },
+  popup: async () => {
+    if (!settings.openai_api_key) return extensionModes.options()
+    const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
+    if (!tab) return
+    const selectionOrText = () => {
+      const selected = window.getSelection().toString()
+      return selected?.length > 10 ? selected : document.body.innerText
+    }
+    tools
+      .filter(tool => tool.title && tab.url.includes(tool.urlFilter ?? ''))
+      .forEach(tool => {
+        const click = () => chrome.scripting
+          .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
+          .then(([{result}]) => tool.fn(tab, result))
+        $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
+          .text(tool.title)
+          .toggleClass('outline', tool.urlFilter == null)
+          .click(click)
+          .appendTo($('#tools'))
+      })
+  },
+  pageScript: () => tools
+    .filter(tool => !tool.title && window.location.href.includes(tool.urlFilter))
+    .forEach(tool => setTimeout(tool.fn, tool.delay ?? 1))
 }
 
 chrome.storage.sync.get(null)
