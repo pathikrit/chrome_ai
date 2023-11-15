@@ -149,7 +149,7 @@ const tools = [
 ]
 
 const extensionModes = {
-  'options': () => {
+  options: () => {
     $('input').change(() => $('#save').prop('disabled', false).text('Save'))
 
     $('#save').click(() => {
@@ -160,42 +160,29 @@ const extensionModes = {
 
     Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
   },
-  'popup': async () => {
+  popup: async () => {
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
-    if (tab) {
-      const selectionOrText = () => {
-        const selected = window.getSelection().toString()
-        return selected?.length > 10 ? selected : document.body.innerText
-      }
-      tools.filter(script=> !script.pageScript).forEach(tool => {
-        if (tab.url.includes(tool.urlFilter ?? '')) {
-          const click = () => chrome.scripting
-            .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
-            .then(([{result}]) => tool.fn(tab, result))
-          $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
-            .text(tool.title)
-            .toggleClass('outline', tool.urlFilter == null)
-            .click(click)
-            .appendTo($('#tools'))
-        }
-      })
+    if (!tab) return
+    const selectionOrText = () => {
+      const selected = window.getSelection().toString()
+      return selected?.length > 10 ? selected : document.body.innerText
     }
+    tools
+      .filter(tool => !tool.pageScript && tab.url.includes(tool.urlFilter ?? ''))
+      .forEach(tool => {
+        const click = () => chrome.scripting
+          .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
+          .then(([{result}]) => tool.fn(tab, result))
+        $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
+          .text(tool.title)
+          .toggleClass('outline', tool.urlFilter == null)
+          .click(click)
+          .appendTo($('#tools'))
+      })
   },
-  'pagescript': () => tools
-    .filter(script=> script.pageScript && window.location.href.includes(script.urlFilter))
-    .forEach(script=> setTimeout(script.fn, script.delay ?? 1))
-}
-
-if (window.location.href.startsWith('chrome-extension://')) {
-  $(document).ready(async () => {
-    settings = await chrome.storage.sync.get(null)
-    if (!settings.openai_api_key) return extensionModes.options()
-    const mode = new URL(document.location).searchParams.get(constants.mode_key)
-    extensionModes[mode]()
-    $('#' + mode).show()
-  })
-} else {
-  extensionModes['pagescript']()
+  pageScript: () => tools
+    .filter(tool => tool.pageScript && window.location.href.includes(tool.urlFilter))
+    .forEach(tool => setTimeout(tool.fn, tool.delay ?? 1))
 }
 
 const askChatGpt = (
@@ -231,6 +218,18 @@ const askChatGpt = (
       throw e
     }
   })
+}
+
+if (window.location.href.startsWith('chrome-extension://')) {
+  $(document).ready(async () => {
+    settings = await chrome.storage.sync.get(null)
+    if (!settings.openai_api_key) return extensionModes.options()
+    const mode = new URL(document.location).searchParams.get(constants.mode_key)
+    extensionModes[mode]()
+    $('#' + mode).show()
+  })
+} else {
+  extensionModes.pageScript()
 }
 
 const copy = (text) => navigator.clipboard.writeText(text)
