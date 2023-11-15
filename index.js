@@ -5,6 +5,13 @@ const constants = {
   mode_key: '__chrome_ai_mode'
 }
 
+/**
+ * Each tool has the following items:
+ *  title: (Optional) If missing, we inject this script into page else we show in popup
+ *  detail: (Optional) popup hover text
+ *  runInTab: (Optional) Run this in the page
+ *  fn: (Optional) Process the data returned from above function
+ */
 const tools = [
   {
     title: 'Chat with page',
@@ -119,7 +126,7 @@ const tools = [
   {
     urlFilter: 'mint.intuit.com',
     delay: 5000,
-    fn: () => {
+    runInTab: () => {
       Array.from(document.querySelectorAll('td[role="cell"]'))
         .filter(el => el.innerText === 'Amazon')
         .map(el => el.nextElementSibling.nextElementSibling)
@@ -133,7 +140,7 @@ const tools = [
   },
   {
     urlFilter: constants.amazon_amount_search_key,
-    fn: () => {
+    runInTab: () => {
       const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
       window.find(amount)
     }
@@ -211,7 +218,7 @@ const extensionModes = {
   },
   pageScript: () => tools
     .filter(tool => !tool.title && window.location.href.includes(tool.urlFilter))
-    .forEach(tool => setTimeout(tool.fn, tool.delay ?? 1))
+    .forEach(tool => setTimeout(tool.runInTab, tool.delay ?? 1))
 }
 
 chrome.storage.sync.get(null)
