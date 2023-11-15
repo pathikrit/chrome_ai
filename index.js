@@ -161,6 +161,7 @@ const extensionModes = {
     Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
   },
   popup: async () => {
+    if (!settings.openai_api_key) return extensionModes.options()
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (!tab) return
     const selectionOrText = () => {
@@ -220,17 +221,13 @@ const askChatGpt = (
   })
 }
 
-if (window.location.href.startsWith('chrome-extension://')) {
-  $(document).ready(async () => {
-    settings = await chrome.storage.sync.get(null)
-    if (!settings.openai_api_key) return extensionModes.options()
-    const mode = new URL(document.location).searchParams.get(constants.mode_key)
+chrome.storage.sync.get(null)
+  .then(s => {
+    settings = s
+    const mode = new URL(document.location).searchParams.get(constants.mode_key) ?? 'pageScript'
     extensionModes[mode]()
     $('#' + mode).show()
   })
-} else {
-  extensionModes.pageScript()
-}
 
 const copy = (text) => navigator.clipboard.writeText(text)
 
