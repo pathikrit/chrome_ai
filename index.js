@@ -62,7 +62,10 @@ const tools = [
     },
     fn: (tab, bolds) => {
       copy(bolds.join('\n'))
-      log(`Copied ${bolds.length} items`)
+        .then(() => {
+          log(`Copied ${bolds.length} items`)
+          open('https://vscode.dev/')
+        })
     }
   },
   {
