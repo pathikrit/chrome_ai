@@ -1,7 +1,8 @@
 let settings = {}
 
 const constants = {
-  amazon_amount_search_key: '__chrome_ai_amount'
+  amazon_amount_search_key: '__chrome_ai_amount',
+  mode_key: '__chrome_ai_mode'
 }
 
 const tools = [
@@ -166,7 +167,7 @@ const extensionModes = {
         const selected = window.getSelection().toString()
         return selected?.length > 10 ? selected : document.body.innerText
       }
-      tools.forEach(tool => {
+      tools.filter(script=> !script.pageScript).forEach(tool => {
         if (tab.url.includes(tool.urlFilter ?? '')) {
           const click = () => chrome.scripting
             .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
@@ -181,15 +182,15 @@ const extensionModes = {
     }
   },
   'pagescript': () => tools
-    .filter(script => script.pageScript && window.location.href.includes(script.urlFilter))
-    .forEach(script => setTimeout(script.fn, script.delay ?? 1))
+    .filter(script=> script.pageScript && window.location.href.includes(script.urlFilter))
+    .forEach(script=> setTimeout(script.fn, script.delay ?? 1))
 }
 
 if (window.location.href.startsWith('chrome-extension://')) {
   $(document).ready(async () => {
     settings = await chrome.storage.sync.get(null)
     if (!settings.openai_api_key) return extensionModes.options()
-    const mode = new URL(document.location).searchParams.get('mode')
+    const mode = new URL(document.location).searchParams.get(constants.mode_key)
     extensionModes[mode]()
     $('#' + mode).show()
   })
