@@ -50,6 +50,22 @@ const tools = [
     )
   },
   {
+    id: 'list',
+    title: 'Extract to a list',
+    detail: 'Extract items from this page into a list',
+    runInTab: () => {
+      const tags = ['h1', 'h2', 'h3', 'h4', /*'h5', 'h6', 'b', 'strong'*/]
+      const bigs = tags.flatMap(tag => Array.from(document.querySelectorAll(tag)))
+      const bolds = [] //Array.from(document.querySelectorAll('*')).filter(el => getComputedStyle(el).fontWeight > 400)
+      const res = bigs.concat(bolds).map(el => el.innerText.trim())
+      return [...new Set(res)]
+    },
+    fn: (tab, bolds) => {
+      copy(bolds.join('\n'))
+      log(`Copied ${bolds.length} items`)
+    }
+  },
+  {
     id: 'outlook',
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
