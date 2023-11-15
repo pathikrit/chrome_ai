@@ -7,7 +7,6 @@ const constants = {
 
 const tools = [
   {
-    id: 'chat',
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
     fn: (tab, page) => {
@@ -24,7 +23,6 @@ const tools = [
     }
   },
   {
-    id: 'gcal',
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
     fn: (tab, text) => askChatGpt(
@@ -55,7 +53,6 @@ const tools = [
     )
   },
   {
-    id: 'list',
     title: 'Extract to a list',
     detail: 'Extract items from this page into a list',
     runInTab: () => {
@@ -74,7 +71,6 @@ const tools = [
     }
   },
   {
-    id: 'outlook',
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
     urlFilter: 'outlook.live.com',
@@ -88,7 +84,6 @@ const tools = [
     }
   },
   {
-    id: 'rule_dedupe',
     title: 'Dedupe Outlook rules',
     detail: 'Dedupe Outlook FROM rules',
     urlFilter: 'mail/rules',
@@ -107,7 +102,6 @@ const tools = [
     }
   },
   {
-    id: 'ril',
     title: `Bulk read links`,
     detail: `Open links in new tabs and mark them as read`,
     urlFilter: 'getpocket.com/saves',
@@ -208,7 +202,7 @@ const extensionModes = {
         const click = () => chrome.scripting
           .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
           .then(([{result}]) => tool.fn(tab, result))
-        $('<button>', {id: tool.id, 'data-tooltip': tool.detail ?? tool.title})
+        $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
           .toggleClass('outline', tool.urlFilter == null)
           .click(click)
