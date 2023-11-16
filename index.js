@@ -109,6 +109,20 @@ const tools = [
     }
   },
   {
+    title: `Download Fidelity Files`,
+    detail: `Download Fidelity Treasuries and call protected CDs`,
+    urlFilter: 'fixedincome.fidelity.com',
+    process: (tab, text) => {
+      const urls = {
+        CD: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchCD&prodmajor=CD&prodminor=ALL&minmaturity=&minyield=&maxyield=&minmoody=&maxmoody=&minsandp=&maxsandp=&minRatings=&maxRatings=&callind=NO&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD',
+        TREASURY: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchTreasury&prodmajor=TREAS&prodminor=ALL&minmaturity=&callind=&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD'
+      }
+      const suffix = new Date().toISOString().slice(0, 10)
+      Object.entries(urls)
+        .map(([key, url]) => chrome.downloads.download({filename: `${key}_${suffix}.csv`, saveAs: true, url: url}))
+    }
+  },
+  {
     title: `Bulk read links`,
     detail: `Open links in new tabs and mark them as read`,
     urlFilter: 'getpocket.com/saves',
@@ -221,6 +235,14 @@ const extensionModes = {
     .forEach(tool => setTimeout(tool.runInTab, tool.delay ?? 1))
 }
 
+const copy = (text) => navigator.clipboard.writeText(text).then(() => sleep(100))
+
+const open = (url, tab) => { tab ? chrome.tabs.update(tab.id, {url}) : chrome.tabs.create({url}) }
+
+const log = (text) => $('#logs').text(text)
+
+const sleep = (ms) => new Promise(r => setTimeout(r, ms))
+
 chrome.storage.sync.get(null)
   .then(s => {
     settings = s
@@ -228,9 +250,3 @@ chrome.storage.sync.get(null)
     extensionModes[mode]()
     if (window.$) $('#' + mode).show()
   })
-
-const copy = (text) => navigator.clipboard.writeText(text)
-
-const open = (url, tab) => { tab ? chrome.tabs.update(tab.id, {url}) : chrome.tabs.create({url}) }
-
-const log = (text) => $('#logs').text(text)
