@@ -8,15 +8,15 @@ const constants = {
 /**
  * Each tool has the following items:
  *  title: (Optional) If missing, we inject this script into page else we show in popup
- *  detail: (Optional) popup hover text
- *  runInTab: (Optional) Run this in the page
- *  fn: (Optional) Process the data returned from above function
+ *  detail: (Optional) popup hover text; defaults to title
+ *  runInTab: (Optional) Run this in the page; defaults to "get selected text or all document text"
+ *  process: (Optional) Process the data returned from above function
  */
 const tools = [
   {
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    fn: (tab, page) => {
+    process: (tab, page) => {
       const query = window.prompt('Ask ChatGPT about this page', 'Summarize this page')
       if (!query) return
       const prompt = [
@@ -32,7 +32,7 @@ const tools = [
   {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    fn: (tab, text) => askChatGpt(
+    process: (tab, text) => askChatGpt(
       // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
       {
@@ -69,7 +69,7 @@ const tools = [
       const res = bigs.concat(bolds).map(el => el.innerText.trim())
       return [...new Set(res)]
     },
-    fn: (tab, bolds) => {
+    process: (tab, bolds) => {
       copy(bolds.join('\n'))
         .then(() => {
           log(`Copied ${bolds.length} items`)
@@ -82,7 +82,7 @@ const tools = [
     detail: 'Create Outlook filter with selected emails',
     urlFilter: 'outlook.live.com',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
-    fn: (tab, emails) => {
+    process: (tab, emails) => {
       if (emails && emails.length > 0) {
         copy(emails.join('; ')).then(() => open('https://outlook.live.com/mail/0/options/mail/rules'))
       } else {
@@ -100,7 +100,7 @@ const tools = [
         .map(el => el.innerText?.trim())
         .filter(text => text.includes('@') && !text.includes('\n'))
     },
-    fn: (tab, emails) => {
+    process: (tab, emails) => {
       const before = emails.length
       emails = [...new Set(emails)]
       const after = emails.length
@@ -118,7 +118,7 @@ const tools = [
       Array.from(document.querySelectorAll('button[data-cy="Archive"]')).slice(0, n).forEach(el => el.click())
       return links
     },
-    fn: (tab, links) => {
+    process: (tab, links) => {
       log(links.join('\n'))
       links.forEach(link => open(link))
     }
@@ -159,7 +159,7 @@ const askChatGpt = (
     messages: [{role: 'system', content: systemMsg}, {role: 'user', content: prompt}]
   }
   if (fn) {
-    //fn.f = (args) => { try { return fn.f(args)} catch (e) { log(e) }}
+    //process.f = (args) => { try { return process.f(args)} catch (e) { log(e) }}
     data.tools = [{type: 'function', function: fn.schema}]
   }
   return $.post({
@@ -208,7 +208,7 @@ const extensionModes = {
       .forEach(tool => {
         const click = () => chrome.scripting
           .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
-          .then(([{result}]) => tool.fn(tab, result))
+          .then(([{result}]) =>  { if (tool.process) tool.process(tab, result) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
           .toggleClass('outline', tool.urlFilter == null)
@@ -226,7 +226,7 @@ chrome.storage.sync.get(null)
     settings = s
     const mode = new URL(document.location).searchParams.get(constants.mode_key) ?? 'pageScript'
     extensionModes[mode]()
-    $('#' + mode).show()
+    if (window.$) $('#' + mode).show()
   })
 
 const copy = (text) => navigator.clipboard.writeText(text)
