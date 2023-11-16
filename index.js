@@ -9,6 +9,7 @@ const constants = {
  * Each tool has the following items:
  *  title: (Optional) If missing, we inject this script into page else we show in popup
  *  detail: (Optional) popup hover text; defaults to title
+ *  urlContains: (Optional) Only enable if window.location.href contains this string
  *  runInTab: (Optional) Run this in the page; defaults to "get selected text or all document text"
  *  process: (Optional) Process the data returned from above function
  */
@@ -80,7 +81,7 @@ const tools = [
   {
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
-    urlFilter: 'outlook.live.com',
+    urlContains: 'outlook.live.com',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     process: (tab, emails) => {
       if (emails && emails.length > 0) {
@@ -93,7 +94,7 @@ const tools = [
   {
     title: 'Dedupe Outlook rules',
     detail: 'Dedupe Outlook FROM rules',
-    urlFilter: 'mail/rules',
+    urlContains: 'mail/rules',
     runInTab: () => {
       //const clipboard = await navigator.clipboard.readText()
       return Array.from(document.querySelectorAll('span'))
@@ -111,7 +112,7 @@ const tools = [
   {
     title: `Download Fidelity Files`,
     detail: `Download Fidelity Treasuries and call protected CDs`,
-    urlFilter: 'fixedincome.fidelity.com',
+    urlContains: 'fixedincome.fidelity.com',
     process: (tab, text) => {
       const urls = {
         CD: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchCD&prodmajor=CD&prodminor=ALL&minmaturity=&minyield=&maxyield=&minmoody=&maxmoody=&minsandp=&maxsandp=&minRatings=&maxRatings=&callind=NO&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD',
@@ -125,7 +126,7 @@ const tools = [
   {
     title: `Bulk read links`,
     detail: `Open links in new tabs and mark them as read`,
-    urlFilter: 'getpocket.com/saves',
+    urlContains: 'getpocket.com/saves',
     runInTab: () => {
       const n = 10
       const links = Array.from(document.querySelectorAll('a[class="publisher"]')).slice(0, n).map(el => el.href)
@@ -138,7 +139,7 @@ const tools = [
     }
   },
   {
-    urlFilter: 'mint.intuit.com',
+    urlContains: 'mint.intuit.com',
     delay: 5000,
     runInTab: () => {
       Array.from(document.querySelectorAll('td[role="cell"]'))
@@ -153,7 +154,7 @@ const tools = [
     }
   },
   {
-    urlFilter: constants.amazon_amount_search_key,
+    urlContains: constants.amazon_amount_search_key,
     runInTab: () => {
       const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
       window.find(amount)
@@ -218,20 +219,20 @@ const extensionModes = {
       return selected?.length > 10 ? selected : document.body.innerText
     }
     tools
-      .filter(tool => tool.title && tab.url.includes(tool.urlFilter ?? ''))
+      .filter(tool => tool.title && tab.url.includes(tool.urlContains ?? ''))
       .forEach(tool => {
         const click = () => chrome.scripting
           .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
           .then(([{result}]) =>  { if (tool.process) tool.process(tab, result) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
-          .toggleClass('outline', tool.urlFilter == null)
+          .toggleClass('outline', tool.urlContains == null)
           .click(click)
           .appendTo($('#tools'))
       })
   },
   pageScript: () => tools
-    .filter(tool => !tool.title && window.location.href.includes(tool.urlFilter))
+    .filter(tool => !tool.title && window.location.href.includes(tool.urlContains ?? ''))
     .forEach(tool => setTimeout(tool.runInTab, tool.delay ?? 1))
 }
 
