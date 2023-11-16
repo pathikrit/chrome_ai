@@ -212,6 +212,7 @@ const extensionModes = {
   },
   popup: async () => {
     if (!settings.openai_api_key) return extensionModes.options()
+    $('#reload').click(() => chrome.runtime.reload())
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (!tab) return
     const selectionOrText = () => {
