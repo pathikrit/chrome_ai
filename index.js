@@ -139,8 +139,9 @@ const tools = [
     }
   },
   {
+    title: `Link Amazon Transactions`,
+    detail: `Find Amazon transactions in Amazon/GMail`,
     urlContains: 'mint.intuit.com',
-    delay: 5000,
     runInTab: () => {
       Array.from(document.querySelectorAll('td[role="cell"]'))
         .filter(el => el.innerText === 'Amazon')
