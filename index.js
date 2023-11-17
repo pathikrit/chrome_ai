@@ -147,7 +147,11 @@ const tools = [
         .filter(el => el.innerText === 'Amazon')
         .map(el => el.nextElementSibling.nextElementSibling)
         .forEach(el => {
-          const insertUrl = (name, url) => el.insertAdjacentHTML('afterend', `<a href="${url}" target="_blank">Find in ${name}</a><br/>`)
+          const insertUrl = (name, url) => {
+            const id = `${constants.amazon_amount_search_key}_${name}`
+            document.getElementById(id)?.remove()
+            el.insertAdjacentHTML('afterend', `<a id="${id}" href="${url}" target="_blank">Find in ${name}</a><br/>`)
+          }
           const amount = el.innerText.replace('-', '').replace('$', '')
           insertUrl('Amazon', `https://www.amazon.com/gp/your-account/order-history?${constants.amazon_amount_search_key}=${amount}`)
           insertUrl('GMail', `https://mail.google.com/mail/u/0/#search/amazon+${amount}`)
