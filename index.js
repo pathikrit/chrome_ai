@@ -147,7 +147,10 @@ const tools = [
       const rows = Array.from(document.querySelectorAll('td[role="cell"]'))
         .filter(el => el.innerText === searchFor)
         .map(el => el.nextElementSibling.nextElementSibling)
-      rows.forEach(el => {
+      const selected = Array.from(document.querySelectorAll('input[aria-label="Description"]'))
+        .filter(el => el.value === searchFor)
+        .map(el => el.parentElement.parentElement.nextSibling.nextSibling)
+      rows.concat(selected).forEach(el => {
           const insertUrl = (name, url) => {
             const id = `${constants.amazon_amount_search_key}_${name}`
             document.getElementById(id)?.remove()
