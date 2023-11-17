@@ -143,10 +143,11 @@ const tools = [
     detail: `Find Amazon transactions in Amazon/GMail`,
     urlContains: 'mint.intuit.com',
     runInTab: () => {
-      Array.from(document.querySelectorAll('td[role="cell"]'))
-        .filter(el => el.innerText === 'Amazon')
+      const searchFor = 'Amazon'
+      const rows = Array.from(document.querySelectorAll('td[role="cell"]'))
+        .filter(el => el.innerText === searchFor)
         .map(el => el.nextElementSibling.nextElementSibling)
-        .forEach(el => {
+      rows.forEach(el => {
           const insertUrl = (name, url) => {
             const id = `${constants.amazon_amount_search_key}_${name}`
             document.getElementById(id)?.remove()
