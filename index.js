@@ -144,6 +144,7 @@ const tools = [
     urlContains: 'mint.intuit.com',
     runInTab: () => {
       const searchFor = 'Amazon'
+      const constants = {amazon_amount_search_key: '__chrome_ai_amount', mode_key: '__chrome_ai_mode'} //TODO: auto inject
       const rows = Array.from(document.querySelectorAll('td[role="cell"]'))
         .filter(el => el.innerText === searchFor)
         .map(el => el.nextElementSibling.nextElementSibling)
