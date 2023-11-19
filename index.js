@@ -151,11 +151,10 @@ const tools = [
       const selected = Array.from(document.querySelectorAll('input[aria-label="Description"]'))
         .filter(el => el.value === searchFor)
         .map(el => el.parentElement.parentElement.nextSibling.nextSibling)
+      //TODO: document.getElementByName(name)?.remove()
       rows.concat(selected).forEach(el => {
           const insertUrl = (name, url) => {
-            const id = `${constants.amazon_amount_search_key}_${name}`
-            document.getElementById(id)?.remove()
-            el.insertAdjacentHTML('afterend', `<a id="${id}" href="${url}" target="_blank">Find in ${name}</a><br/>`)
+            el.insertAdjacentHTML('afterend', `<a href="${url}" target="_blank">Find in ${name}</a><br/>`)
           }
           const amount = el.innerText.replace('-', '').replace('$', '')
           insertUrl('Amazon', `https://www.amazon.com/gp/your-account/order-history?${constants.amazon_amount_search_key}=${amount}`)
