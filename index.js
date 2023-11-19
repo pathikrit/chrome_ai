@@ -142,9 +142,8 @@ const tools = [
     title: `Link Amazon Transactions`,
     detail: `Find Amazon transactions in Amazon/GMail`,
     urlContains: 'mint.intuit.com',
-    runInTab: () => {
+    runInTab: (settings, constants) => {
       const searchFor = 'Amazon'
-      const constants = {amazon_amount_search_key: '__chrome_ai_amount', mode_key: '__chrome_ai_mode'} //TODO: auto inject
       const rows = Array.from(document.querySelectorAll('td[role="cell"]'))
         .filter(el => el.innerText === searchFor)
         .map(el => el.nextElementSibling.nextElementSibling)
@@ -232,8 +231,11 @@ const extensionModes = {
     tools
       .filter(tool => tool.title && tab.url.includes(tool.urlContains ?? ''))
       .forEach(tool => {
-        const click = () => chrome.scripting
-          .executeScript({target: {tabId: tab.id}, function: tool.runInTab ?? selectionOrText})
+        const click = () => chrome.scripting.executeScript({
+            target: {tabId: tab.id},
+            func: tool.runInTab ?? selectionOrText,
+            args: [settings, constants]
+          })
           .then(([{result}]) =>  { if (tool.process) tool.process(tab, result) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
