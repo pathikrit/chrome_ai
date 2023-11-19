@@ -1,5 +1,3 @@
-let settings = {}
-
 const constants = {
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode'
@@ -33,7 +31,8 @@ const tools = [
   {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    process: (tab, text) => askChatGpt(
+    process: (tab, text, settings) => askChatGpt(
+      settings.openai_api_key,
       // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
       {
@@ -172,6 +171,7 @@ const tools = [
 ]
 
 const askChatGpt = (
+  apiKey,
   prompt,
   fn,
   systemMsg = `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`,
@@ -188,7 +188,7 @@ const askChatGpt = (
   }
   return $.post({
     url: 'https://api.openai.com/v1/chat/completions',
-    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + settings.openai_api_key},
+    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
     data: JSON.stringify(data)
   }).then(res => {
     log(`Parsing response from ${model} ...`)
@@ -208,7 +208,7 @@ const askChatGpt = (
 
 /************************ Extension Framework Below *************************/
 const extensionModes = {
-  options: () => {
+  options: (settings) => {
     $('input').change(() => $('#save').prop('disabled', false).text('Save'))
 
     $('#save').click(() => {
@@ -219,7 +219,7 @@ const extensionModes = {
 
     Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
   },
-  popup: async () => {
+  popup: async (settings) => {
     if (!settings.openai_api_key) return extensionModes.options()
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (!tab) return
@@ -235,7 +235,7 @@ const extensionModes = {
             func: tool.runInTab ?? selectionOrText,
             args: [settings, constants]
           })
-          .then(([{result}]) =>  { if (tool.process) tool.process(tab, result) })
+          .then(([{result}]) =>  { if (tool.process) tool.process(tab, result, settings) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
           .toggleClass('outline', tool.urlContains == null)
@@ -243,7 +243,7 @@ const extensionModes = {
           .appendTo($('#tools'))
       })
   },
-  pageScript: () => tools
+  pageScript: (settings) => tools
     .filter(tool => !tool.title && window.location.href.includes(tool.urlContains ?? ''))
     .forEach(tool => setTimeout(tool.runInTab, tool.delay ?? 1))
 }
@@ -256,13 +256,11 @@ const log = (text) => $('#logs').text(text)
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms))
 
-chrome.storage.sync.get(null)
-  .then(s => {
-    settings = s
-    const mode = new URL(document.location).searchParams.get(constants.mode_key) ?? 'pageScript'
-    extensionModes[mode]()
-    if (window.$) {
-      $('#reload').click(() => chrome.runtime.reload())
-      $('#' + mode).show()
-    }
-  })
+chrome.storage.sync.get(null).then(settings => {
+  const mode = new URL(document.location).searchParams.get(constants.mode_key) ?? 'pageScript'
+  extensionModes[mode](settings)
+  if (window.$) {
+    $('#reload').click(() => chrome.runtime.reload())
+    $('#' + mode).show()
+  }
+})
