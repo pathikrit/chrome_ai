@@ -79,6 +79,17 @@ const tools = [
     }
   },
   {
+    title: 'Add to Google Maps',
+    detail: 'Extract items from this page into my Google Maps',
+    runInTab: () => {
+      const items = ['h1', 'h2', 'h3', 'h4', 'i']
+        .flatMap(tag => Array.from(document.querySelectorAll(tag)))
+        .map(el => el.innerText.trim())
+      return [...new Set(items)]
+    },
+    process: (tab, items) => items.forEach(item => open(`https://www.google.com/maps/d/u/0/edit?mid=1jMbuz8X4UAVs2J_RP4a12TJIs2M0c0rE&hl=en&ll=40.74104954673493%2C-73.99859879815716&z=14&${constants.my_maps_search_key}=${item}`))    
+  },
+  {
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
     urlContains: 'outlook.live.com',
@@ -171,9 +182,11 @@ const tools = [
   },
   {
     urlContains: constants.my_maps_search_key,
+    delay: 3000,
     runInTab: (settings, constants) => {
       const loc = new URLSearchParams(window.location.search).get(constants.my_maps_search_key)
-      console.log(loc)
+      document.getElementById('mapsprosearch-field').value = loc
+      Array.from(document.getElementById('mapsprosearch-button').children)[0].click()
     }
   }
 ]
