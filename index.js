@@ -1,4 +1,5 @@
 const constants = {
+  my_maps_search_key: '__chrome_ai_loc',
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode'
 }
@@ -163,9 +164,16 @@ const tools = [
   },
   {
     urlContains: constants.amazon_amount_search_key,
-    runInTab: () => {
+    runInTab: (settings, constants) => {
       const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
       window.find(amount)
+    }
+  },
+  {
+    urlContains: constants.my_maps_search_key,
+    runInTab: (settings, constants) => {
+      const loc = new URLSearchParams(window.location.search).get(constants.my_maps_search_key)
+      console.log(loc)
     }
   }
 ]
@@ -240,7 +248,7 @@ const extensionModes = {
   },
   pageScript: (settings) => tools
     .filter(tool => !tool.title && window.location.href.includes(tool.urlContains ?? ''))
-    .forEach(tool => setTimeout(tool.runInTab, tool.delay ?? 1))
+    .forEach(tool => setTimeout(() => tool.runInTab(settings, constants), tool.delay ?? 1))
 }
 
 const copy = (text) => navigator.clipboard.writeText(text).then(() => sleep(100))
