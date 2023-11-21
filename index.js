@@ -16,7 +16,7 @@ const tools = [
   {
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    process: (tab, page) => dialog('chat_with_page', () => {
+    process: (page, tab) => dialog('chat_with_page', () => {
       const query = $('chat_with_page_prompt').val()
       const prompt = [
         `I am copying the text from ${tab.url} below:`,
@@ -31,7 +31,7 @@ const tools = [
   {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    process: (tab, text, settings) => askChatGpt(
+    process: (text, tab, settings) => askChatGpt(
       settings.openai_api_key,
       // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
       `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
@@ -69,7 +69,7 @@ const tools = [
       const res = bigs.concat(bolds).map(el => el.innerText.trim())
       return [...new Set(res)]
     },
-    process: (tab, bolds) => {
+    process: (bolds) => {
       copy(bolds.join('\n'))
         .then(() => {
           log(`Copied ${bolds.length} items`)
@@ -89,14 +89,14 @@ const tools = [
         .map(el => el.innerText.trim())
       return [...new Set(items)]
     },
-    process: (tab, items, settings) => items.forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))    
+    process: (items, tab, settings) => items.forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))    
   },
   {
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
     urlContains: 'outlook.live.com',
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
-    process: (tab, emails) => {
+    process: (emails) => {
       if (emails && emails.length > 0) {
         copy(emails.join('; ')).then(() => open('https://outlook.live.com/mail/0/options/mail/rules'))
       } else {
@@ -114,7 +114,7 @@ const tools = [
         .map(el => el.innerText?.trim())
         .filter(text => text.includes('@') && !text.includes('\n'))
     },
-    process: (tab, emails) => {
+    process: (emails) => {
       const before = emails.length
       emails = [...new Set(emails)]
       const after = emails.length
@@ -126,7 +126,7 @@ const tools = [
     title: `Download Fidelity Files`,
     detail: `Download Fidelity Treasuries and call protected CDs`,
     urlContains: 'fixedincome.fidelity.com',
-    process: (tab, text) => {
+    process: () => {
       const urls = {
         CD: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchCD&prodmajor=CD&prodminor=ALL&minmaturity=&minyield=&maxyield=&minmoody=&maxmoody=&minsandp=&maxsandp=&minRatings=&maxRatings=&callind=NO&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD',
         TREASURY: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchTreasury&prodmajor=TREAS&prodminor=ALL&minmaturity=&callind=&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD'
@@ -146,7 +146,7 @@ const tools = [
       Array.from(document.querySelectorAll('button[data-cy="Archive"]')).slice(0, n).forEach(el => el.click())
       return links
     },
-    process: (tab, links) => {
+    process: (links) => {
       log(links.join('\n'))
       links.forEach(link => open(link))
     }
@@ -253,7 +253,7 @@ const extensionModes = {
             func: tool.runInTab ?? selectionOrText,
             args: [settings, constants]
           })
-          .then(([{result}]) =>  { if (tool.process) tool.process(tab, result, settings) })
+          .then(([{result}]) =>  { if (tool.process) tool.process(result, tab, settings) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
           .text(tool.title)
           .toggleClass('outline', tool.urlContains == null)
