@@ -16,9 +16,8 @@ const tools = [
   {
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    process: (tab, page) => {
-      const query = window.prompt('Ask ChatGPT about this page', 'Summarize this page')
-      if (!query) return
+    process: (tab, page) => dialog('chat_with_page', () => {
+      const query = $('chat_with_page_prompt').val()
       const prompt = [
         `I am copying the text from ${tab.url} below:`,
         page.slice(0, 10000),
@@ -27,7 +26,7 @@ const tools = [
       ].join('\n\n')
       log(`Opening ChatGPT with ${page.length} chars page ...`)
       copy(prompt).then(() => open('https://chat.openai.com/'))
-    }
+    })
   },
   {
     title: 'To Google Calendar',
@@ -265,6 +264,14 @@ const extensionModes = {
   pageScript: (settings) => tools
     .filter(tool => !tool.title && window.location.href.includes(tool.urlContains ?? ''))
     .forEach(tool => setTimeout(() => tool.runInTab(settings, constants), tool.delay ?? 1))
+}
+
+const dialog = (id, f) => {
+  $('#' + id).prop('open', true)
+  $(`#${id} :submit`).click(() => {
+    $('#' + id).removeAttr('open')
+    f()
+  })
 }
 
 const copy = (text) => navigator.clipboard.writeText(text).then(() => sleep(100))
