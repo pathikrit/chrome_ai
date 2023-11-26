@@ -79,17 +79,11 @@ const tools = [
   },
   {
     title: 'Add to Google Maps',
-    detail: 'Extract items from this page into my Google Maps',
-    runInTab: () => {
-      const selected = window.getSelection().toString()
-      if (selected?.length > 3) return [selected]
-
-      const items = ['h1', 'h2', 'h3', 'h4', 'i']
-        .flatMap(tag => Array.from(document.querySelectorAll(tag)))
-        .map(el => el.innerText.trim())
-      return [...new Set(items)]
-    },
-    process: (items, tab, settings) => items.forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))    
+    detail: 'Bulk add items to Google Maps',
+    process: () => dialog('add_to_maps', () => {
+      const items = $('add_to_maps_prompt').val().split(/\r?\n/)
+      items.forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))    
+    }),
   },
   {
     title: 'To Outlook rules',
