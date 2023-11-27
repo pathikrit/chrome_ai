@@ -34,7 +34,7 @@ const tools = [
     process: (text, tab, settings) => askChatGpt(
       settings.openai_api_key,
       // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
-      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it?\n\n` + text.slice(0, 10000),
+      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Can you create a function call out of it? If this is a multiday event, assume I will visit it for only couple of hours on a weekend evening.\n\n` + text.slice(0, 10000),
       {
         f: (arg) => {
           const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '').replaceAll('Z', '')
