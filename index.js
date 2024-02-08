@@ -29,6 +29,47 @@ const tools = [
     })
   },
   {
+    title: 'Auto group tabs',
+    process: (page, tab, settings) => {
+      chrome.windows.getAll()
+        .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
+        .then(tabs => tabs.flat())
+        .then(tabs => tabs.map(tab => ({id: tab.id, url: tab.url.split('?')[0], title: tab.title})))
+        .then(tabs => askChatGpt(
+          settings.openai_api_key, 
+          `
+            I have the following tabs open in my browser. Please group them into categories. 
+            Some example categories would be "coding", "finance", "travel", "news", "shopping" etc.
+            If any page looks like tickets (for events or shows) or reservations (for bars) use the category "date night"
+
+            
+            ${JSON.stringify(tabs, null, 2)}
+          `,
+          {
+            f: (arg) => {
+              for (let i = 0; i < Math.min(arg.categories.length, arg.ids.length); i++) {
+                const category = arg.categories[i]
+                const ids = arg.ids[i]
+                chrome.tabs.group({tabIds: ids}).then(groupId => chrome.tabGroups.update(groupId, {title: category}))
+              }
+            },
+            schema: {
+              name: 'group_tabs',
+              description: 'Groups tabs into categories',
+              parameters: {
+                type: "object",
+                properties: {
+                  categories: {type: "array", items: {type: "string"}, description: "List of detected categories"},
+                  ids: {type: "array", items: {type: "array", items: {type: "integer"}}, description: "List of tab ids in each category (in same order as categories)"}
+                }
+              }
+            }
+          }
+        )
+      )
+    }
+  },
+  {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
     process: (text, tab, settings) => askChatGpt(
