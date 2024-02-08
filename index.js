@@ -39,18 +39,20 @@ const tools = [
           settings.openai_api_key, 
           `
             I have the following tabs open in my browser. Please group them into categories. 
-            Some example categories would be "coding", "finance", "travel", "news", "shopping" etc.
-            If any page looks like tickets (for events or shows) or reservations (for bars) use the category "date night"
+            Some example categories would be "coding", "finance", "travel", "news", "shopping", "amazon" etc. but feel free to create your own categories.
+            If any page looks like tickets (for movies, shows or activities) or reservations (for restaurants & bars) use the category "date night"
 
-            
+
             ${JSON.stringify(tabs, null, 2)}
           `,
           {
             f: (arg) => {
+              const validIds = tabs.map(tab => tab.id) // Sometimes chatgpt hallucinates and gives invalid ids
               for (let i = 0; i < Math.min(arg.categories.length, arg.ids.length); i++) {
                 const category = arg.categories[i]
-                const ids = arg.ids[i]
-                chrome.tabs.group({tabIds: ids}).then(groupId => chrome.tabGroups.update(groupId, {title: category}))
+                const ids = arg.ids[i].filter(id => validIds.includes(id))
+                chrome.tabs.group({tabIds: ids})
+                  .then(groupId => chrome.tabGroups.update(groupId, {title: category,  collapsed: true}))
               }
             },
             schema: {

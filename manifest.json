@@ -20,6 +20,6 @@
       "js": ["index.js"]
     }
   ],
-  "permissions": ["tabs", "activeTab", "downloads", "scripting", "storage"],
+  "permissions": ["tabs", "tabGroups", "activeTab", "downloads", "scripting", "storage"],
   "host_permissions": ["<all_urls>"]
 }
