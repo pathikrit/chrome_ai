@@ -34,7 +34,7 @@ const tools = [
       chrome.windows.getAll()
         .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
         .then(tabs => tabs.flat())
-        .then(tabs => tabs.map(tab => ({id: tab.id, url: tab.url.split('?')[0], title: tab.title})))
+        .then(tabs => tabs.map(tab => ({id: tab.id, url: tab.url.split('?')[0], title: tab.title}))) //TODO: Also parse header from page?
         .then(tabs => askChatGpt(
           settings.openai_api_key, 
           `
@@ -47,13 +47,16 @@ const tools = [
           `,
           {
             f: (arg) => {
+              const groupTabs = (tabIds, group) => chrome.tabs.group({tabIds}).then(groupId => chrome.tabGroups.update(groupId, {title: group, collapsed: true}))
               const validIds = tabs.map(tab => tab.id) // Sometimes chatgpt hallucinates and gives invalid ids
-              for (let i = 0; i < Math.min(arg.categories.length, arg.ids.length); i++) {
+              const misc = [] // Tabs that don't fit into any category
+              for (let i = 0; i < Math.min(arg.categories.length, arg.tabIds.length); i++) {
                 const category = arg.categories[i]
-                const ids = arg.ids[i].filter(id => validIds.includes(id))
-                chrome.tabs.group({tabIds: ids})
-                  .then(groupId => chrome.tabGroups.update(groupId, {title: category,  collapsed: true}))
+                const tabIds = arg.tabIds[i].filter(id => validIds.includes(id))
+                if (tabIds.length > 1) groupTabs(tabIds, category)
+                else misc.push(...tabIds)
               }
+              if (misc.length) groupTabs(misc, 'misc')
             },
             schema: {
               name: 'group_tabs',
@@ -62,7 +65,7 @@ const tools = [
                 type: "object",
                 properties: {
                   categories: {type: "array", items: {type: "string"}, description: "List of detected categories"},
-                  ids: {type: "array", items: {type: "array", items: {type: "integer"}}, description: "List of tab ids in each category (in same order as categories)"}
+                  tabIds: {type: "array", items: {type: "array", items: {type: "integer"}}, description: "List of tab ids in each category (in same order as categories)"}
                 }
               }
             }
