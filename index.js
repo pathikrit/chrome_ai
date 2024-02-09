@@ -29,6 +29,10 @@ const tools = [
     })
   },
   {
+    title: 'Remove Paywall',
+    process: (page, tab) => chrome.tabs.update(tab.id, {url: `https://12ft.io/${encodeURIComponent(tab.url)}`})
+  },
+  {
     title: 'Auto group tabs',
     process: (page, tab, settings) => {
       chrome.windows.getAll()
