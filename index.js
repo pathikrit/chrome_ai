@@ -30,7 +30,14 @@ const tools = [
   },
   {
     title: 'Remove Paywall',
-    process: (page, tab) => chrome.tabs.update(tab.id, {url: `https://12ft.io/${encodeURIComponent(tab.url)}`})
+    process: (page, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
+  },
+  {
+    title: 'Save all tabs to Pocket',
+    detail: 'Save all tabs in this window to Pocket',
+    process: (page, tab) => chrome.tabs.query({currentWindow: true})
+      .then(tabs => Promise.all(tabs.map(tab => open(`https://getpocket.com/edit?url=${encodeURIComponent(tab.url)}`, tab))))
+      .then(redirects => log(`Saved ${redirects.length} tabs to Pocket`))
   },
   {
     title: 'Auto group tabs',
