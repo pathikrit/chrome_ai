@@ -232,7 +232,7 @@ const tools = [
     }
   },
   {
-    title: `Amazon Purchase Searcher`,
+    title: 'Amazon Purchase Searcher',
     urlContains: constants.amazon_amount_search_key,
     inject: true,
     runInTab: (settings, constants) => {
@@ -241,7 +241,7 @@ const tools = [
     }
   },
   {
-    title: `My Maps Helper`,
+    title: 'My Maps Helper',
     urlContains: constants.my_maps_search_key,
     delay: 3000,
     inject: true,
@@ -250,6 +250,12 @@ const tools = [
       document.getElementById('mapsprosearch-field').value = loc
       Array.from(document.getElementById('mapsprosearch-button').children)[0].click()
     }
+  },
+  {
+    title: 'Prevent Fidelity Logout',
+    urlContains: 'digital.fidelity.com',    
+    inject: true,
+    runInTab: (settings, constants) => setInterval(() => click(), 1000 * 60 * 5) // Click every 5 minutes
   }
 ]
 
@@ -315,7 +321,7 @@ const extensionModes = {
           })
           .then(([{result}]) =>  { if (tool.process) tool.process(result, tab, settings) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
-          .text(tool.title + (tool.inject ? ' (injected)' : ''))
+          .text(tool.title + (tool.inject ? ' (Injected)' : ''))
           .toggleClass('outline', tool.urlContains == null)
           .click(click)
           .appendTo($('#tools'))

@@ -15,7 +15,8 @@
       "matches": [
         "https://mint.intuit.com/transaction*",
         "https://*.amazon.com/gp/your-account/order-history*",
-        "https://*.google.com/maps/d/u/0/edit*"
+        "https://*.google.com/maps/d/u/0/edit*",
+        "https://digital.fidelity.com/*"
       ],
       "js": ["index.js"]
     }
