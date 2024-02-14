@@ -179,8 +179,8 @@ const tools = [
     }
   },
   {
-    title: `Download Fidelity Files`,
-    detail: `Download Fidelity Treasuries and call protected CDs`,
+    title: 'Download Fidelity Files',
+    detail: 'Download Fidelity Treasuries and call protected CDs',
     urlContains: 'fixedincome.fidelity.com',
     process: () => {
       const urls = {
@@ -193,8 +193,8 @@ const tools = [
     }
   },
   {
-    title: `Bulk read links`,
-    detail: `Open links in new tabs and mark them as read`,
+    title: 'Bulk read links',
+    detail: 'Open links in new tabs and mark them as read',
     urlContains: 'getpocket.com/saves',
     runInTab: () => {
       const n = 10
@@ -208,8 +208,8 @@ const tools = [
     }
   },
   {
-    title: `Link Amazon Transactions`,
-    detail: `Find Amazon transactions in Amazon/GMail`,
+    title: 'Link Amazon Transactions',
+    detail: 'Find Amazon transactions in Amazon/GMail',
     urlContains: 'mint.intuit.com',
     runInTab: (settings, constants) => {
       const searchFor = 'Amazon'
@@ -255,7 +255,7 @@ const tools = [
     title: 'Prevent Fidelity Logout',
     urlContains: 'digital.fidelity.com',    
     inject: true,
-    runInTab: (settings, constants) => setInterval(() => click(), 1000 * 60 * 5) // Click every 5 minutes
+    runInTab: (settings, constants) => setInterval(() => document.body.click(), 1000 * 60 * 5) // Click every 5 minutes
   }
 ]
 
