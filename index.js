@@ -6,10 +6,12 @@ const constants = {
 
 /**
  * Each tool has the following items:
- *  title: (Optional) If missing, we inject this script into page else we show in popup
+ *  title: (required) Describe this script
  *  detail: (Optional) popup hover text; defaults to title
  *  urlContains: (Optional) Only enable if window.location.href contains this string
  *  runInTab: (Optional) Run this in the page; defaults to "get selected text or all document text"
+ *  delay: (Optional) Delay in ms before running the above script (default is 100ms)
+ *  inject: (Optional) If true, always inject the runInTab script into the page
  *  process: (Optional) Process the data returned from above function
  */
 const tools = [
@@ -230,15 +232,19 @@ const tools = [
     }
   },
   {
+    title: `Amazon Purchase Searcher`,
     urlContains: constants.amazon_amount_search_key,
+    inject: true,
     runInTab: (settings, constants) => {
       const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
       window.find(amount)
     }
   },
   {
+    title: `My Maps Helper`,
     urlContains: constants.my_maps_search_key,
     delay: 3000,
+    inject: true,
     runInTab: (settings, constants) => {
       const loc = new URLSearchParams(window.location.search).get(constants.my_maps_search_key)
       document.getElementById('mapsprosearch-field').value = loc
@@ -300,7 +306,7 @@ const extensionModes = {
       return selected?.length > 10 ? selected : document.body.innerText
     }
     tools
-      .filter(tool => tool.title && tab.url.includes(tool.urlContains ?? ''))
+      .filter(tool => tab.url.includes(tool.urlContains ?? ''))
       .forEach(tool => {
         const click = () => chrome.scripting.executeScript({
             target: {tabId: tab.id},
@@ -309,15 +315,15 @@ const extensionModes = {
           })
           .then(([{result}]) =>  { if (tool.process) tool.process(result, tab, settings) })
         $('<button>', {'data-tooltip': tool.detail ?? tool.title})
-          .text(tool.title)
+          .text(tool.title + (tool.inject ? ' (injected)' : ''))
           .toggleClass('outline', tool.urlContains == null)
           .click(click)
           .appendTo($('#tools'))
       })
   },
   pageScript: (settings) => tools
-    .filter(tool => !tool.title && window.location.href.includes(tool.urlContains ?? ''))
-    .forEach(tool => setTimeout(() => tool.runInTab(settings, constants), tool.delay ?? 1))
+    .filter(tool => tool.inject && window.location.href.includes(tool.urlContains ?? ''))
+    .forEach(tool => setTimeout(() => tool.runInTab(settings, constants), tool.delay ?? 100))
 }
 
 const dialog = (id, f) => {
