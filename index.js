@@ -255,7 +255,10 @@ const tools = [
     title: 'Prevent Fidelity Logout',
     urlContains: 'digital.fidelity.com',    
     inject: true,
-    runInTab: (settings, constants) => setInterval(() => document.body.click(), 1000 * 60 * 5) // Click every 5 minutes
+    runInTab: (settings, constants) => setInterval(() => {
+      console.log('Preventing Fidelity logout ...')
+      document.body.dispatchEvent(new Event('click', {bubbles: true}))
+    }, 1000 * 60 * 20) // Click every 20 minutes
   }
 ]
 
