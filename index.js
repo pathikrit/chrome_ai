@@ -258,6 +258,9 @@ const tools = [
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
       document.body.dispatchEvent(new Event('click', {bubbles: true}))
+      window.dispatchEvent(new KeyboardEvent('keydown', {'key':'Shift'}))
+      window.scrollBy(0, 1)
+      window.scrollBy(0, -1)
     }, 1000 * 60 * 20) // Click every 20 minutes
   }
 ]
