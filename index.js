@@ -16,6 +16,11 @@ const constants = {
  */
 const tools = [
   {
+    title: 'Summarize Page',
+    detail: 'Summarizes this webpage',
+    process: (page, tab) => open(`https://webpage-summarizer-q9f1.onrender.com/summarize?url=${encodeURIComponent(tab.url)}`)
+  },
+  {
     title: 'Chat with page',
     detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
     process: (page, tab) => dialog('chat_with_page', () => {
@@ -49,9 +54,9 @@ const tools = [
         .then(tabs => tabs.flat())
         .then(tabs => tabs.map(tab => ({id: tab.id, url: tab.url.split('?')[0], title: tab.title}))) //TODO: Also parse header from page?
         .then(tabs => askChatGpt(
-          settings.openai_api_key, 
+          settings.openai_api_key,
           `
-            I have the following tabs open in my browser. Please group them into categories. 
+            I have the following tabs open in my browser. Please group them into categories.
             Some example categories would be "coding", "finance", "travel", "news", "shopping", "amazon" etc. but feel free to create your own categories.
             If any page looks like tickets (for movies, shows or activities) or reservations (for restaurants & bars) use the category "date night"
 
@@ -144,7 +149,7 @@ const tools = [
         .split(/\r?\n/)
         .map(line => line.trim())
         .filter(line => line.length > 0)
-        .forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))    
+        .forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))
     }),
   },
   {
@@ -253,7 +258,7 @@ const tools = [
   },
   {
     title: 'Prevent Fidelity Logout',
-    urlContains: 'digital.fidelity.com',    
+    urlContains: 'digital.fidelity.com',
     inject: true,
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
@@ -286,7 +291,7 @@ const askChatGpt = (
     headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
     data: JSON.stringify(data)
   }).then(res => {
-    log(`Parsing response from ${model} ...`)    
+    log(`Parsing response from ${model} ...`)
     const gptFn = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
     if (fn && gptFn?.arguments) {
       return fn.f(JSON.parse(gptFn?.arguments))
