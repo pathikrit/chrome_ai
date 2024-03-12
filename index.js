@@ -266,6 +266,7 @@ const tools = [
     }, 1000 * 60 * 20) // Click every 20 minutes
   }
 ]
+tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
 
 const askChatGpt = (
   apiKey,
