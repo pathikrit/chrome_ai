@@ -13,7 +13,7 @@
   "content_scripts": [
     {
       "matches": [
-        "https://mint.intuit.com/transaction*",
+        "https://app.monarchmoney.com/transactions",
         "https://*.amazon.com/gp/your-account/order-history*",
         "https://*.google.com/maps/d/u/0/edit*",
         "https://digital.fidelity.com/*"

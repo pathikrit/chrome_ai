@@ -215,25 +215,22 @@ const tools = [
   {
     title: 'Link Amazon Transactions',
     detail: 'Find Amazon transactions in Amazon/GMail',
-    urlContains: 'mint.intuit.com',
+    urlContains: 'app.monarchmoney.com/transactions',
+    inject: true,
     runInTab: (settings, constants) => {
       const searchFor = 'Amazon'
-      const rows = Array.from(document.querySelectorAll('td[role="cell"]'))
-        .filter(el => el.innerText === searchFor)
-        .map(el => el.nextElementSibling.nextElementSibling)
-      const selected = Array.from(document.querySelectorAll('input[aria-label="Description"]'))
-        .filter(el => el.value === searchFor)
-        .map(el => el.parentElement.parentElement.nextSibling.nextSibling)
-      Array.from(document.querySelectorAll(`a[name="${constants.amazon_amount_search_key}"]`))
-          .forEach(el => el.remove())
-      rows.concat(selected).forEach(el => {
+      for (const el of Array.from(document.querySelectorAll('[data-index]'))) {
+        const row = el.innerText.split('\n')
+        const desc = row[0]
+        if (desc.includes(searchFor)) {
+          const amount = row[row.length - 2]
           const insertUrl = (name, url) => {
-            el.insertAdjacentHTML('afterend', `<a name="${constants.amazon_amount_search_key}" href="${url}" target="_blank">Find in ${name}</a><br/>`)
+            el.insertAdjacentHTML('afterend', `<a name="${constants.amazon_amount_search_key}" href="${url}" target="_blank" style="color:white;">Find in ${name}</a><br/>`)
           }
-          const amount = el.innerText.replace('-', '').replace('$', '')
           insertUrl('Amazon', `https://www.amazon.com/gp/your-account/order-history?${constants.amazon_amount_search_key}=${amount}`)
           insertUrl('GMail', `https://mail.google.com/mail/u/0/#search/amazon+${amount}`)
-        })
+        }
+      }
     }
   },
   {
