@@ -259,10 +259,7 @@ const tools = [
     inject: true,
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
-      document.body.dispatchEvent(new Event('click', {bubbles: true}))
-      window.dispatchEvent(new KeyboardEvent('keydown', {'key':'Shift'}))
-      window.scrollBy(0, 1)
-      window.scrollBy(0, -1)
+      document.getElementsByClassName('posweb-grid_top-refresh-icon').item(0).click()
     }, 1000 * 60 * 20) // Click every 20 minutes
   }
 ]
