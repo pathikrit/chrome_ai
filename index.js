@@ -254,13 +254,13 @@ const tools = [
     }
   },
   {
-    title: 'Prevent Fidelity Logout',
+    title: 'Auto-refresh Fidelity',
     urlContains: 'digital.fidelity.com',
     inject: true,
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
       document.getElementsByClassName('posweb-grid_top-refresh-icon').item(0).click()
-    }, 1000 * 60 * 20) // Click every 20 minutes
+    }, 1000 * 60 * 1) // Click every 1 minutes
   }
 ]
 tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
