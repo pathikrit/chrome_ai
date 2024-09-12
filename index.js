@@ -213,36 +213,6 @@ const tools = [
     }
   },
   {
-    title: 'Link Amazon Transactions',
-    detail: 'Find Amazon transactions in Amazon/GMail',
-    urlContains: 'app.monarchmoney.com/transactions',
-    inject: true,
-    runInTab: (settings, constants) => {
-      const searchFor = 'Amazon'
-      for (const el of Array.from(document.querySelectorAll('[data-index]'))) {
-        const row = el.innerText.split('\n')
-        const desc = row[0]
-        if (desc.includes(searchFor)) {
-          const amount = row[row.length - 2]
-          const insertUrl = (name, url) => {
-            el.insertAdjacentHTML('afterend', `<a name="${constants.amazon_amount_search_key}" href="${url}" target="_blank" style="color:white;">Find in ${name}</a><br/>`)
-          }
-          insertUrl('Amazon', `https://www.amazon.com/gp/your-account/order-history?${constants.amazon_amount_search_key}=${amount}`)
-          insertUrl('GMail', `https://mail.google.com/mail/u/0/#search/amazon+${amount}`)
-        }
-      }
-    }
-  },
-  {
-    title: 'Amazon Purchase Searcher',
-    urlContains: constants.amazon_amount_search_key,
-    inject: true,
-    runInTab: (settings, constants) => {
-      const amount = new URLSearchParams(window.location.search).get(constants.amazon_amount_search_key)
-      window.find(amount)
-    }
-  },
-  {
     title: 'My Maps Helper',
     urlContains: constants.my_maps_search_key,
     delay: 3000,
