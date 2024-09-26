@@ -18,31 +18,16 @@ const tools = [
   {
     title: 'Summarize Page',
     detail: 'Summarizes this webpage',
-    process: (page, tab) => open(`https://webpage-summarizer-q9f1.onrender.com/summarize?url=${encodeURIComponent(tab.url)}`)
-  },
-  {
-    title: 'Chat with page',
-    detail: 'Opens ChatGPT (with prompt in clipboard) to chat with page',
-    process: (page, tab) => dialog('chat_with_page', () => {
-      const query = $('chat_with_page_prompt').val()
-      const prompt = [
-        `I am copying the text from ${tab.url} below:`,
-        page.slice(0, 10000),
-        `I have some questions about above text. Please analyze it and answer the following:`,
-        query
-      ].join('\n\n')
-      log(`Opening ChatGPT with ${page.length} chars page ...`)
-      copy(prompt).then(() => open('https://chat.openai.com/'))
-    })
+    process: (pageHtml, tab) => $.post(`https://webpage-summarizer-q9f1.onrender.com/summarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
   },
   {
     title: 'Remove Paywall',
-    process: (page, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
+    process: (pageHtml, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
   },
   {
     title: 'Save all tabs to Pocket',
     detail: 'Save all tabs in this window to Pocket',
-    process: (page, tab) => chrome.tabs.query({currentWindow: true})
+    process: () => chrome.tabs.query({currentWindow: true})
       .then(tabs => Promise.all(tabs.map(tab => open(`https://getpocket.com/edit?url=${encodeURIComponent(tab.url)}`, tab))))
       .then(redirects => log(`Saved ${redirects.length} tabs to Pocket`))
   },
@@ -95,33 +80,7 @@ const tools = [
   {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    process: (text, tab, settings) => askChatGpt(
-      settings.openai_api_key,
-      // Take first n chars of text (see https://help.openai.com/en/articles/4936856-what-are-tokens-and-how-to-count-them)
-      `I saved the text from a webpage (url=${tab.url}). I will paste it below. Create a calendar invite from it:\n\n` + text.slice(0, 10000),
-      {
-        f: (arg) => {
-          const dateFormat = (d) => d.replaceAll('-', '').replaceAll(':', '').replaceAll('Z', '')
-          const link = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${arg.title}&dates=${dateFormat(arg.start)}/${dateFormat(arg.end)}&location=${arg.location ?? ''}&details=${arg.details ?? ''}`
-          open(encodeURI(link))
-        },
-        schema: {
-          name: 'create_calendar_invite',
-          description: 'Creates a calendar invite with given title, start date and time, end date and time, location and description',
-          parameters: {
-            type: "object",
-            properties: {
-              title: {type: "string", description: "Event title"},
-              start: {type: "string", format: "date-time", description: "Event start time in ISO format"},
-              end: {type: "string", format: "date-time", description: "Event end time in ISO format"},
-              location: {type: "string", description: "Event location"},
-              details: {type: "string", description: "Event description (short)"}
-            },
-            required: ["title", "start", "end"],
-          }
-        }
-      }
-    )
+    process: (pageHtml, tab) => $.post(`https://webpage-summarizer-q9f1.onrender.com/calendarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
   },
   {
     title: 'Extract to a list',
@@ -285,7 +244,7 @@ const extensionModes = {
     if (!tab) return
     const selectionOrText = () => {
       const selected = window.getSelection().toString()
-      return selected?.length > 10 ? selected : document.body.innerText
+      return selected?.length > 10 ? selected : document.body.innerHTML
     }
     tools
       .filter(tool => tab.url.includes(tool.urlContains ?? ''))
