@@ -4,6 +4,8 @@ const constants = {
   mode_key: '__chrome_ai_mode'
 }
 
+Array.prototype.distinct = function() { return [...new Set(this)] }  // can only be used in the process and not in runInTab(); dont change to arrow function
+
 /**
  * Each tool has the following items:
  *  title: (required) Describe this script
@@ -89,11 +91,10 @@ const tools = [
       const tags = ['h1', 'h2', 'h3', 'h4', /*'h5', 'h6', 'b', 'strong'*/]
       const bigs = tags.flatMap(tag => Array.from(document.querySelectorAll(tag)))
       const bolds = [] //Array.from(document.querySelectorAll('*')).filter(el => getComputedStyle(el).fontWeight > 400)
-      const res = bigs.concat(bolds).map(el => el.innerText.trim())
-      return [...new Set(res)]
+      return bigs.concat(bolds).map(el => el.innerText.trim())
     },
     process: (bolds) => {
-      copy(bolds.join('\n'))
+      copy(bolds.distinct().join('\n'))
         .then(() => {
           log(`Copied ${bolds.length} items`)
           open('https://vscode.dev/')
@@ -108,6 +109,7 @@ const tools = [
         .split(/\r?\n/)
         .map(line => line.trim())
         .filter(line => line.length > 0)
+        .distinct()
         .forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))
     }),
   },
@@ -118,7 +120,7 @@ const tools = [
     runInTab: () => Array.from(document.querySelectorAll('div[aria-selected="true"] span[title*="@"]')).map(el => el.title),
     process: (emails) => {
       if (emails && emails.length > 0) {
-        copy(emails.join('; ')).then(() => open('https://outlook.live.com/mail/0/options/mail/rules'))
+        copy(emails.distinct().join('; ')).then(() => open('https://outlook.live.com/mail/0/options/mail/rules'))
       } else {
         log('No email selected')
       }
@@ -136,7 +138,7 @@ const tools = [
     },
     process: (emails) => {
       const before = emails.length
-      emails = [...new Set(emails)]
+      emails = emails.distinct()
       const after = emails.length
       log(before === after ? `No duplicates found in ${before} emails` : `Deduped ${before} email addresses to ${after} emails ... `)
       copy(emails.sort().join('; '))
