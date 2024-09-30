@@ -185,12 +185,28 @@ const tools = [
     }
   },
   {
+    title: 'Copy Fidelity Baskets',
+    urlContains: 'digital.fidelity.com/ftgw/digital/sdp-dashboard',
+    runInTab: () => {
+      const order = ['Trend', 'Bond', 'Inflation Hedge', 'Drawdown', 'Value', 'International', 'Geopolitics']
+      Array.from(document.querySelectorAll('.kits-list-table-item')).forEach(el => {
+        const name = el.querySelector('.kit-name-container').innerText.trim()
+        let balance = el.querySelector('.kit-current-balance span').innerText.trim()
+        if (!balance.startsWith('$')) balance = name
+        const idx = order.findIndex(item => name.startsWith(item))
+        if (idx >= 0) order[idx] = balance
+      })
+      return order
+    },
+    process: (balances) => copy(balances.join('\n')).then(() => window.close())
+  },
+  {
     title: 'Auto-refresh Fidelity',
     urlContains: 'digital.fidelity.com',
     inject: true,
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
-      document.getElementsByClassName('posweb-grid_top-refresh-icon').item(0).click()
+      document.getElementsByClassName('posweb-grid_top-refresh-icon')?.item(0)?.click()
     }, 1000 * 60 * 1) // Click every 1 minutes
   }
 ]
