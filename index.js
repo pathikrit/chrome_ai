@@ -25,6 +25,11 @@ const tools = [
     process: (pageHtml, tab) => $.post(`${constants.ai_utils}/summarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
   },
   {
+    title: 'To Google Calendar',
+    detail: 'Create Google calendar invite from contents of this page',
+    process: (pageHtml, tab) => $.post(`${constants.ai_utils}/calendarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
+  },
+  {
     title: 'Remove Paywall',
     process: (pageHtml, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
   },
@@ -34,6 +39,21 @@ const tools = [
     process: () => chrome.tabs.query({currentWindow: true})
       .then(tabs => Promise.all(tabs.map(tab => open(`https://getpocket.com/edit?url=${encodeURIComponent(tab.url)}`, tab))))
       .then(redirects => log(`Saved ${redirects.length} tabs to Pocket`))
+  },
+  {
+    title: 'Bulk read links',
+    detail: 'Open links in new tabs and mark them as read',
+    urlContains: 'getpocket.com/saves',
+    runInTab: () => {
+      const n = 10
+      const links = Array.from(document.querySelectorAll('a[class="publisher"]')).slice(0, n).map(el => el.href)
+      Array.from(document.querySelectorAll('button[data-tooltip="Archive"]')).slice(0, n).forEach(el => el.click())
+      return links
+    },
+    process: (links) => {
+      log(links.join('\n'))
+      links.forEach(link => open(link))
+    }
   },
   {
     title: 'Auto group tabs',
@@ -82,11 +102,6 @@ const tools = [
     }
   },
   {
-    title: 'To Google Calendar',
-    detail: 'Create Google calendar invite from contents of this page',
-    process: (pageHtml, tab) => $.post(`${constants.ai_utils}/calendarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
-  },
-  {
     title: 'Extract to a list',
     detail: 'Extract items from this page into a list',
     runInTab: () => {
@@ -102,18 +117,6 @@ const tools = [
           open('https://vscode.dev/')
         })
     }
-  },
-  {
-    title: 'Add to Google Maps',
-    detail: 'Bulk add items to Google Maps',
-    process: () => dialog('add_to_maps', () => {
-      $('add_to_maps_prompt').val()
-        .split(/\r?\n/)
-        .map(line => line.trim())
-        .filter(line => line.length > 0)
-        .distinct()
-        .forEach(item => open(`${settings.google_my_maps_url}&${constants.my_maps_search_key}=${item}`))
-    }),
   },
   {
     title: 'To Outlook rules',
@@ -144,46 +147,6 @@ const tools = [
       const after = emails.length
       log(before === after ? `No duplicates found in ${before} emails` : `Deduped ${before} email addresses to ${after} emails ... `)
       copy(emails.sort().join('; '))
-    }
-  },
-  {
-    title: 'Download Fidelity Files',
-    detail: 'Download Fidelity Treasuries and call protected CDs',
-    urlContains: 'fixedincome.fidelity.com',
-    process: () => {
-      const urls = {
-        CD: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchCD&prodmajor=CD&prodminor=ALL&minmaturity=&minyield=&maxyield=&minmoody=&maxmoody=&minsandp=&maxsandp=&minRatings=&maxRatings=&callind=NO&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD',
-        TREASURY: 'https://fixedincome.fidelity.com/ftgw/fi/FIIndividualBondsSearch?displayFormat=CSVDOWNLOAD&requestpage=FISearchTreasury&prodmajor=TREAS&prodminor=ALL&minmaturity=&callind=&scheduledCalls=&makeWholeCall=&conditionalCall=&zerocpn=&amtind=&displayFormat=TABLE&bondtierind=Y&bondotherind=Y&sinkind=&specialRedemption=&foreigndebt=&survivorsoption=&callable=&orRating=&searchResultsURL=&sortby=MA&displayFormatOverride=CSVDOWNLOAD'
-      }
-      const suffix = new Date().toISOString().slice(0, 10)
-      Object.entries(urls)
-        .map(([key, url]) => chrome.downloads.download({filename: `${key}_${suffix}.csv`, saveAs: true, url: url}))
-    }
-  },
-  {
-    title: 'Bulk read links',
-    detail: 'Open links in new tabs and mark them as read',
-    urlContains: 'getpocket.com/saves',
-    runInTab: () => {
-      const n = 10
-      const links = Array.from(document.querySelectorAll('a[class="publisher"]')).slice(0, n).map(el => el.href)
-      Array.from(document.querySelectorAll('button[data-tooltip="Archive"]')).slice(0, n).forEach(el => el.click())
-      return links
-    },
-    process: (links) => {
-      log(links.join('\n'))
-      links.forEach(link => open(link))
-    }
-  },
-  {
-    title: 'My Maps Helper',
-    urlContains: constants.my_maps_search_key,
-    delay: 3000,
-    inject: true,
-    runInTab: (settings, constants) => {
-      const loc = new URLSearchParams(window.location.search).get(constants.my_maps_search_key)
-      document.getElementById('mapsprosearch-field').value = loc
-      Array.from(document.getElementById('mapsprosearch-button').children)[0].click()
     }
   },
   {
