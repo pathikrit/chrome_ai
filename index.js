@@ -3,10 +3,13 @@ const constants = {
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
   ai_utils: 'https://webpage-summarizer-q9f1.onrender.com'
-  //ai_utils: 'http://localhost:3000'
+  //ai_utils: 'http://127.0.0.1:8000'
 }
 
 Array.prototype.distinct = function() { return [...new Set(this)] }  // can only be used in the process and not in runInTab(); dont change to arrow function
+
+// Calls https://github.com/pathikrit/ai-utils
+my_ai_utils = (api) => (pageHtml, tab) => $.post(`${constants.ai_utils}/${api}?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res._url))
 
 /**
  * Each tool has the following items:
@@ -22,12 +25,12 @@ const tools = [
   {
     title: 'Summarize Page',
     detail: 'Summarizes this webpage',
-    process: (pageHtml, tab) => $.post(`${constants.ai_utils}/summarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
+    process: my_ai_utils('summarize')
   },
   {
     title: 'To Google Calendar',
     detail: 'Create Google calendar invite from contents of this page',
-    process: (pageHtml, tab) => $.post(`${constants.ai_utils}/calendarize?url=${encodeURIComponent(tab.url)}`, pageHtml).then(res => open(res.resultUrl))
+    process: my_ai_utils('calendarize')
   },
   {
     title: 'Remove Paywall',
