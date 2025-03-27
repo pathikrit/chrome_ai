@@ -2,8 +2,8 @@ const constants = {
   my_maps_search_key: '__chrome_ai_loc',
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
-  ai_utils: 'https://ai-utils-2ss4.onrender.com'
-  //ai_utils: 'http://127.0.0.1:8000'
+  //ai_utils: 'https://ai-utils-2ss4.onrender.com'
+  ai_utils: 'http://127.0.0.1:8000'
 }
 
 Array.prototype.distinct = function() { return [...new Set(this)] }  // can only be used in the process and not in runInTab(); dont change to arrow function
@@ -65,49 +65,15 @@ const tools = [
   },
   {
     title: 'Auto group tabs',
-    process: (page, tab, settings) => {
-      chrome.windows.getAll()
-        .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
-        .then(tabs => tabs.flat())
-        .then(tabs => tabs.map(tab => ({id: tab.id, url: tab.url.split('?')[0], title: tab.title}))) //TODO: Also parse header from page?
-        .then(tabs => askChatGpt(
-          settings.openai_api_key,
-          `
-            I have the following tabs open in my browser. Please group them into categories.
-            Some example categories would be "coding", "finance", "travel", "news", "shopping", "amazon" etc. but feel free to create your own categories.
-            If any page looks like tickets (for movies, shows or activities) or reservations (for restaurants & bars) use the category "date night"
-
-
-            ${JSON.stringify(tabs, null, 2)}
-          `,
-          {
-            f: (arg) => {
-              const groupTabs = (tabIds, group) => chrome.tabs.group({tabIds}).then(groupId => chrome.tabGroups.update(groupId, {title: group, collapsed: true}))
-              const validIds = tabs.map(tab => tab.id) // Sometimes chatgpt hallucinates and gives invalid ids
-              const misc = [] // Tabs that don't fit into any category
-              for (let i = 0; i < Math.min(arg.categories.length, arg.tabIds.length); i++) {
-                const category = arg.categories[i]
-                const tabIds = arg.tabIds[i].filter(id => validIds.includes(id))
-                if (tabIds.length > 1) groupTabs(tabIds, category)
-                else misc.push(...tabIds)
-              }
-              if (misc.length) groupTabs(misc, 'misc')
-            },
-            schema: {
-              name: 'group_tabs',
-              description: 'Groups tabs into categories',
-              parameters: {
-                type: "object",
-                properties: {
-                  categories: {type: "array", items: {type: "string"}, description: "List of detected categories"},
-                  tabIds: {type: "array", items: {type: "array", items: {type: "integer"}}, description: "List of tab ids in each category (in same order as categories)"}
-                }
-              }
-            }
-          }
+    process: (page, tab, settings) => chrome.windows.getAll()
+      .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
+      .then(tabs => tabs.flat())
+      .then(tabs => tabs.map(tab => ({tabId: tab.id, url: tab.url.split('?')[0], title: tab.title}))) //TODO: Also parse header from page?
+      .then(tabs => $.ajax({type: "POST", url: `${constants.ai_utils}/tabolate`, data: JSON.stringify(tabs), contentType: "application/json"}))
+      .then(groups => groups.forEach(({group, tabIds}) => chrome.tabs.group({ tabIds })
+            .then(groupId => chrome.tabGroups.update(groupId, { title: group, collapsed: true }))
         )
       )
-    }
   },
   {
     title: 'To Outlook rules',
