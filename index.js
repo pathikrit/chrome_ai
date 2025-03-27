@@ -2,8 +2,8 @@ const constants = {
   my_maps_search_key: '__chrome_ai_loc',
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
-  //ai_utils: 'https://ai-utils-2ss4.onrender.com'
-  ai_utils: 'http://127.0.0.1:8000'
+  ai_utils: 'https://ai-utils-2ss4.onrender.com'
+  //ai_utils: 'http://127.0.0.1:8000'
 }
 
 Array.prototype.distinct = function() { return [...new Set(this)] }  // can only be used in the process and not in runInTab(); dont change to arrow function
@@ -68,6 +68,7 @@ const tools = [
     process: (page, tab, settings) => chrome.windows.getAll()
       .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
       .then(tabs => tabs.flat())
+      .then(tabs => tabs.filter(tab => !tab.pinned))
       .then(tabs => tabs.map(tab => ({tabId: tab.id, url: tab.url.split('?')[0], title: tab.title}))) //TODO: Also parse header from page?
       .then(tabs => $.ajax({type: "POST", url: `${constants.ai_utils}/tabolate`, data: JSON.stringify(tabs), contentType: "application/json"}))
       .then(groups => groups.forEach(({group, tabIds}) => chrome.tabs.group({ tabIds })
@@ -129,7 +130,7 @@ const tools = [
     runInTab: (settings, constants) => setInterval(() => {
       console.log('Preventing Fidelity logout ...')
       document.getElementsByClassName('posweb-grid_top-refresh-icon')?.item(0)?.click()
-    }, 1000 * 60 * 1) // Click every 1 minutes
+    }, 1000 * 60 * 10) // Click every 1 minutes
   }
 ]
 tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
