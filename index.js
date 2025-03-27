@@ -2,7 +2,7 @@ const constants = {
   my_maps_search_key: '__chrome_ai_loc',
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
-  ai_utils: 'https://webpage-summarizer-q9f1.onrender.com'
+  ai_utils: 'https://ai-utils-2ss4.onrender.com'
   //ai_utils: 'http://127.0.0.1:8000'
 }
 
@@ -110,23 +110,6 @@ const tools = [
     }
   },
   {
-    title: 'Extract to a list',
-    detail: 'Extract items from this page into a list',
-    runInTab: () => {
-      const tags = ['h1', 'h2', 'h3', 'h4', /*'h5', 'h6', 'b', 'strong'*/]
-      const bigs = tags.flatMap(tag => Array.from(document.querySelectorAll(tag)))
-      const bolds = [] //Array.from(document.querySelectorAll('*')).filter(el => getComputedStyle(el).fontWeight > 400)
-      return bigs.concat(bolds).map(el => el.innerText.trim())
-    },
-    process: (bolds) => {
-      copy(bolds.distinct().join('\n'))
-        .then(() => {
-          log(`Copied ${bolds.length} items`)
-          open('https://vscode.dev/')
-        })
-    }
-  },
-  {
     title: 'To Outlook rules',
     detail: 'Create Outlook filter with selected emails',
     urlContains: 'outlook.live.com',
@@ -184,37 +167,6 @@ const tools = [
   }
 ]
 tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
-
-const askChatGpt = (
-  apiKey,
-  prompt,
-  fn,
-  systemMsg = `If needed, you can assume today's date is: ${new Date().toLocaleDateString()}`,
-  model = 'gpt-3.5-turbo'
-) => {
-  log(`Asking ${model} ...`)
-  const data = {
-    model: model,
-    messages: [{role: 'system', content: systemMsg}, {role: 'user', content: prompt}]
-  }
-  if (fn) {
-    //process.f = (args) => { try { return process.f(args)} catch (e) { log(e) }}
-    data.tools = [{type: 'function', function: fn.schema}]
-  }
-  return $.post({
-    url: 'https://api.openai.com/v1/chat/completions',
-    headers: {'Content-Type': 'application/json', 'Authorization': 'Bearer ' + apiKey},
-    data: JSON.stringify(data)
-  }).then(res => {
-    log(`Parsing response from ${model} ...`)
-    const gptFn = res?.choices?.[0]?.message?.tool_calls?.[0]?.function
-    if (fn && gptFn?.arguments) {
-      return fn.f(JSON.parse(gptFn?.arguments))
-    } else {
-      return res?.choices?.[0]?.message?.content
-    }
-  }).catch(e => log(JSON.stringify(e)))
-}
 
 /************************ Extension Framework Below *************************/
 const extensionModes = {
