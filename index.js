@@ -111,7 +111,7 @@ const tools = [
     title: 'Copy Fidelity Baskets',
     urlContains: 'digital.fidelity.com/ftgw/digital/sdp-dashboard',
     runInTab: () => {
-      const order = ['Trend', 'Bond', 'Value', 'International', 'Geopolitics']
+      const order = ['Trend', 'Bond', 'International', 'Geopolitics']
       Array.from(document.querySelectorAll('.kits-list-table-item')).forEach(el => {
         const name = el.querySelector('.kit-name-container').innerText.trim()
         let balance = el.querySelector('.kit-current-balance span').innerText.trim()
