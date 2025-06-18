@@ -33,11 +33,6 @@ const tools = [
     process: my_ai_utils('calendarize')
   },
   {
-    title: 'Extract Restaurants',
-    detail: 'Extracts restaurants from this page',
-    process: my_ai_utils('restaurantize')
-  },
-  {
     title: 'Remove Paywall',
     process: (pageHtml, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
   },
