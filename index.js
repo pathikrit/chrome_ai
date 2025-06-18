@@ -1,11 +1,8 @@
 const constants = {
-  // TODO: Remove these keys
-  my_maps_search_key: '__chrome_ai_loc',
-  amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
   ai_utils: 'https://ai-utils-2ss4.onrender.com',
-  bulk_read_links: 10,
   //ai_utils: 'http://127.0.0.1:8000'
+  bulk_read_links: 10,
 }
 
 Array.prototype.distinct = function() { return [...new Set(this)] }  // can only be used in the process and not in runInTab(); dont change to arrow function
@@ -121,9 +118,10 @@ const tools = [
     }, 1000 * 60 * 10) // Click every 1 minutes
   }
 ]
-tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
 
 /************************ Extension Framework Below *************************/
+tools.sort((t1, t2) => t1.title.localeCompare(t2.title))
+
 const extensionModes = {
   options: (settings) => {
     $('input').change(() => $('#save').prop('disabled', false).text('Save'))
@@ -137,7 +135,7 @@ const extensionModes = {
     Object.entries(settings).forEach(([key, value]) => $('#' + key).val(value))
   },
   popup: async (settings) => {
-    if (!settings.openai_api_key) return extensionModes.options()
+    // if (!settings.some_key) return extensionModes.options()
     const tab = await chrome.tabs.query({active: true, lastFocusedWindow: true}).then(([tab]) => tab)
     if (!tab) return
     const selectionOrText = () => {
