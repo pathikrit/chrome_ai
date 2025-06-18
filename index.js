@@ -1,8 +1,10 @@
 const constants = {
+  // TODO: Remove these keys
   my_maps_search_key: '__chrome_ai_loc',
   amazon_amount_search_key: '__chrome_ai_amount',
   mode_key: '__chrome_ai_mode',
-  ai_utils: 'https://ai-utils-2ss4.onrender.com'
+  ai_utils: 'https://ai-utils-2ss4.onrender.com',
+  bulk_read_links: 10,
   //ai_utils: 'http://127.0.0.1:8000'
 }
 
@@ -38,36 +40,16 @@ const tools = [
   },
   {
     title: 'Save all tabs to reading list',
-    process: () => {
-      chrome.tabs.query({ currentWindow: true })
-        .then(tabs => {
-          tabs.forEach(tab => {
-            chrome.readingList.addEntry({
-              title: tab.title,
-              url: tab.url,
-              hasBeenRead: false
-            })
-            .then(() => chrome.tabs.remove(tab.id))
-          })
-        })
-    }
+    process: () => chrome.tabs.query({ currentWindow: true }).then(tabs => tabs.forEach(add_to_reading_list))
   },
   {
     title: 'Bulk Read Links',
-    process: () => {
-      const N = 10
-      chrome.readingList.query({ hasBeenRead: false })
-        .then(entries => {
-          entries
-            .sort((a, b) => a.creationTime - b.creationTime)
-            .slice(0, N)
-            .forEach(entry => {
-              chrome.readingList
-                .updateEntry({url: entry.url, hasBeenRead: true})
-                .then(() => open(entry.url))
-          })
-        })
-    }
+    process: () => chrome.readingList.query({hasBeenRead: false})
+      .then(entries => entries
+        .sort((a, b) => a.creationTime - b.creationTime)
+        .slice(0, constants.bulk_read_links)
+        .forEach(read_from_reading_list)
+      )
   },
   {
     title: 'Auto group tabs',
@@ -190,6 +172,14 @@ const dialog = (id, f) => {
     f()
   })
 }
+
+const add_to_reading_list = (tab) => chrome.readingList
+  .addEntry({title: tab.title, url: tab.url, hasBeenRead: false})
+  .finally(() => chrome.tabs.remove(tab.id))
+
+const read_from_reading_list = (entry) => chrome.readingList
+  .updateEntry({url: entry.url, hasBeenRead: true})
+  .then(() => open(entry.url))
 
 const copy = (text) => navigator.clipboard.writeText(text).then(() => sleep(100))
 
