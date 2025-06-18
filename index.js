@@ -42,11 +42,20 @@ const tools = [
     process: (pageHtml, tab) => open(`https://12ft.io/${encodeURIComponent(tab.url)}`, tab)
   },
   {
-    title: 'Save all tabs to Pocket',
-    detail: 'Save all tabs in this window to Pocket',
-    process: () => chrome.tabs.query({currentWindow: true})
-      .then(tabs => Promise.all(tabs.map(tab => open(`https://getpocket.com/edit?url=${encodeURIComponent(tab.url)}`, tab))))
-      .then(redirects => log(`Saved ${redirects.length} tabs to Pocket`))
+    title: 'Save all tabs to reading list',
+    process: () => {
+      chrome.tabs.query({ currentWindow: true })
+        .then(tabs => {
+          tabs.forEach(tab => {
+            chrome.readingList.addEntry({
+              title: tab.title,
+              url: tab.url,
+              hasBeenRead: false
+            })
+            .then(() => chrome.tabs.remove(tab.id))
+          })
+        })
+    }
   },
   {
     title: 'Bulk read links',
