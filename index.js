@@ -58,18 +58,20 @@ const tools = [
     }
   },
   {
-    title: 'Bulk read links',
-    detail: 'Open links in new tabs and mark them as read',
-    urlContains: 'getpocket.com/saves',
-    runInTab: () => {
-      const n = 10
-      const links = Array.from(document.querySelectorAll('a[class="publisher"]')).slice(0, n).map(el => el.href)
-      Array.from(document.querySelectorAll('button[data-tooltip="Archive"]')).slice(0, n).forEach(el => el.click())
-      return links
-    },
-    process: (links) => {
-      log(links.join('\n'))
-      links.forEach(link => open(link))
+    title: 'Bulk Read Links',
+    process: () => {
+      const N = 10
+      chrome.readingList.query({ hasBeenRead: false })
+        .then(entries => {
+          entries
+            .sort((a, b) => a.creationTime - b.creationTime)
+            .slice(0, N)
+            .forEach(entry => {
+              chrome.readingList
+                .updateEntry({url: entry.url, hasBeenRead: true})
+                .then(() => open(entry.url))
+          })
+        })
     }
   },
   {
