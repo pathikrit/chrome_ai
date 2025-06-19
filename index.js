@@ -52,7 +52,8 @@ const tools = [
     title: 'Delete all Reading List',
     process: async () => {
       await chrome.readingList.query({})
-        .then(entries => Promise.all(entries.map(entry => chrome.readingList.removeEntry({url: entry.url}))));
+        //.then(entries => Promise.all(entries.map(entry => chrome.readingList.removeEntry({url: entry.url}))));
+        .then(entries => alert(`Deleting ${entries.length} reading list entries...`))
     }
   },
   {
