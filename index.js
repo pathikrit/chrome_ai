@@ -49,6 +49,48 @@ const tools = [
       )
   },
   {
+    title: 'Delete all Reading List',
+    process: async () => {
+      await chrome.readingList.query({})
+        .then(entries => Promise.all(entries.map(entry => chrome.readingList.removeEntry({url: entry.url}))));
+    }
+  },
+  {
+    title: 'Import Pocket',
+    process: async () => {
+      await chrome.readingList.query({})
+      .then(entries => Promise.all(
+        entries.map(entry => chrome.readingList.removeEntry({url: entry.url}))
+      ));
+      const res   = await fetch('http://localhost:8005/pocket.jsonl');
+      const text  = await res.text()
+      const lines = text.split('\n').filter(Boolean);
+      let i = 0;
+      for (const raw of lines) {
+        if (i % 100 === 0) {
+          console.log(`Processing ${i}th item...`);
+        }
+        i++;
+        const item = JSON.parse(raw)
+
+        const url = item.given_url || item.resolved_url
+        const title = item.given_title || item.resolved_title || url
+        const hasBeenRead = item.time_read !== "0"
+
+        if (hasBeenRead) continue
+
+        if (url && title) {
+          await chrome.readingList
+              .addEntry({title, url, hasBeenRead})
+              //.then(() => console.log(`Imported url=${url}`))
+              .catch(err => console.error(`Error importing url=${url}`, err))
+        } else {
+          console.warn(`Skipping item with missing URL or title: ${raw}`)
+        }
+      }
+    }
+  },
+  {
     title: 'Auto group tabs',
     process: (page, tab, settings) => chrome.windows.getAll()
       .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
