@@ -53,7 +53,13 @@ const tools = [
     title: 'Reading List stats',
     process: async () => {
       await chrome.readingList.query({})
-        .then(entries => alert(`Total count = ${entries.length}`))
+        .then(entries => {
+          const total = entries.length
+          const read = entries.filter(e => e.hasBeenRead).length
+          const unread = total - read
+          const stats = `Reading List: ${total} total, ${unread} unread, ${read} read`
+          alert(stats)
+        })
     }
   },
   {
