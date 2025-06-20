@@ -50,6 +50,13 @@ const tools = [
       )
   },
   {
+    title: 'Reading List stats',
+    process: async () => {
+      await chrome.readingList.query({})
+        .then(entries => alert(`Total count = ${entries.length}`))
+    }
+  },
+  {
     title: 'Auto group tabs',
     process: (page, tab, settings) => chrome.windows.getAll()
       .then(windows => Promise.all(windows.flatMap(w => chrome.tabs.query({windowId: w.id}))))
