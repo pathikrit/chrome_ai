@@ -120,7 +120,7 @@ const tools = [
       })
       return order
     },
-    process: (balances) => copy(balances.join('\n')).then(() => window.close())
+    process: (balances) => copy(balances.join('\n')).then(() => open('https://docs.google.com/spreadsheets/d/1MFeFy9M81bJLmc0TWtTsRoIaYPLEfFgRQUs19DjEAAg/edit?gid=2082099830#gid=2082099830'))
   },
   {
     title: 'Auto-refresh Fidelity',
